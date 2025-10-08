@@ -1,24 +1,20 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { Stack } from "expo-router";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+const userIsLoggedIn = false; //alterar para true quando implementar login
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack>
+      {userIsLoggedIn ? (
+        // Rotas que só aparecem DEPOIS do login
+        <Stack.Screen name="home" options={{ title: "Bem-vindo!" }} />
+      ) : (
+        // Rotas que aparecem ANTES do login (o grupo onboarding)
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+      )}
+      <Stack.Screen name="pag-carregamento" options={{ headerShown: false }} />
+      <Stack.Screen name="jogos" options={{ title: "Jogos do Sunny" }} />
+      <Stack.Screen name="[game_id]" options={{ title: "Jogando..." }} />
+    </Stack>
   );
 }

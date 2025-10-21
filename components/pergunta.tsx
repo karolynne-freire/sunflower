@@ -12,13 +12,12 @@ export default function PerguntaEmocional() {
     "Você fez algo que te deixou feliz?",
   ];
 
-  // Faz o modal aparecer de tempos em tempos
   useEffect(() => {
     const interval = setInterval(() => {
       const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
       setQuestion(randomQuestion);
       setShowModal(true);
-    }, 15000); // aparece a cada 15 segundos
+    }, 15000); 
 
     return () => clearInterval(interval);
   }, []);

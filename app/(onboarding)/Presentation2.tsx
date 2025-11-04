@@ -13,7 +13,7 @@ export default function Presentation2() {
       </Text>
 
       <Image
-        source={require("../../assets/img/sunny-apresent.png")}
+        source={require("../../assets/img/sunny-ideia.png")}
         style={styles.image}
         resizeMode="contain"
       />
@@ -33,5 +33,5 @@ export default function Presentation2() {
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#FAF8F0", padding: 20 },
   text: { textAlign: "center", fontSize: 18, color: "#333" },
-  image: { width: 150, height: 150, marginVertical: 20 },
+  image: { width: 250, height: 250, marginVertical: 20 },
 });

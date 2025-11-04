@@ -5,33 +5,67 @@ import Button from "../../components/button";
 
 export default function Presentation1() {
   return (
-    <View style={styles.container}>
-      <Image
-        source={require("../../assets/img/feliz.png")}
-        style={styles.image}
-        resizeMode="contain"
-      />
+        <View style={styles.container}>
+      <View style={styles.row}>
+        <Image
+          source={require("../../assets/img/sunny-apresent.png")}
+          style={styles.image}
+          resizeMode="contain"
+        />
 
-      <Text style={styles.title}>Olá, amiguinho(a)!</Text>
-      <Text style={styles.subtitle}>Eu sou o Sunny!</Text>
+        <View style={styles.textBox}>
+          <Text style={styles.title}>Olá, amiguinho(a)!</Text>
+          <Text style={styles.subtitle}>Eu sou o Sunny!</Text>
+        </View>
+      </View>
 
       <Text style={styles.text}>
         Aqui, nós vamos brincar e aprender juntos!{"\n"}
         Durante o jogo, eu vou te fazer algumas perguntinhas.
       </Text>
 
-<Link href="/presentation2" asChild>
-  <Button title="Avançar" />
-</Link>
-
+     <Link href="/Presentation2" asChild>
+    <Button title="Avançar" />
+  </Link>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#FAF8F0", padding: 20 },
-  image: { width: 180, height: 180, marginBottom: 20 },
-  title: { fontSize: 26, fontWeight: "bold", color: "#333" },
-  subtitle: { fontSize: 22, marginBottom: 10, color: "#333" },
-  text: { textAlign: "center", fontSize: 16, color: "#333", marginBottom: 30 },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FAF8F0",
+    padding: 20,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  image: {
+    width: 250,
+    height: 250,
+    marginRight: -15,
+  },
+  textBox: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom:5,
+    color: "#333",
+  },
+  subtitle: {
+    fontSize: 25,
+    color: "#333",
+  },
+  text: {
+    textAlign: "center",
+    fontSize: 20,
+    color: "#333",
+    marginBottom: 30,
+  },
 });

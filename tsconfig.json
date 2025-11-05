@@ -3,7 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".", // Manter a correção anterior
-    "moduleResolution": "node", // <--- ADICIONE/VERIFIQUE ESTA LINHA
+    "moduleResolution": "bundler", 
+    "ignoreDeprecations": "5.0",
     "paths": {
       "@/*": [
         "./*"

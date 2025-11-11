@@ -19,7 +19,6 @@ export default function Input({ containerStyle, style, ...rest }: InputProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
     borderRadius: 8,
     paddingHorizontal: 15,
     paddingVertical: 10,

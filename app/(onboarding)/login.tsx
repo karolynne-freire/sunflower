@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
-import Button from "../../components/button";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Input from "../../components/input";
 
 export default function Login() {
@@ -9,30 +8,101 @@ export default function Login() {
 
   const handleStart = () => {
     if (!name.trim()) return;
-    console.log("Nome digitado:", name);
-    router.push("/home"); // leva para a tela principal
+    router.push({ pathname: "/home", params: { name } });
   };
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../../assets/img/feliz.png")}
-        style={styles.image}
-        resizeMode="contain"
-      />
+      <View style={styles.imageCircle}>
+        <Image
+          source={require("../../assets/img/feliz.png")}
+          style={styles.image}
+          resizeMode="contain"
+        />
+      </View>
 
       <Text style={styles.label}>Nome</Text>
+      <Input
+        placeholder="Digite seu nome"
+        value={name}
+        onChangeText={setName}
+        style={styles.input}
+        autoCapitalize="none"
+      />
 
-      <Input placeholder="Digite seu nome" value={name} onChangeText={setName} />
+      <TouchableOpacity style={styles.startButton} onPress={handleStart}>
+        <Text style={styles.startText}>Começar</Text>
+      </TouchableOpacity>
 
-      <Button title="Começar" onPress={handleStart} />
-      <Button title="Sair" backgroundColor="#CDECF5" onPress={() => router.back()} />
+      <TouchableOpacity
+        style={[styles.exitButton]}
+        onPress={() => router.back()}
+      >
+        <Text style={styles.exitText}>Sair</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#FAF8F0", padding: 20 },
-  image: { width: 150, height: 150, marginBottom: 30 },
-  label: { fontSize: 18, color: "#333", marginBottom: 5 },
+  container: {
+    flex: 1,
+    backgroundColor: "#FAF8F0",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  },
+  imageCircle: {
+    borderWidth: 3,
+    borderColor: "#AEE1F9",
+    borderRadius: 100,
+    padding: 10,
+    marginBottom: 25,
+  },
+  image: {
+    width: 150,
+    height: 150,
+  },
+  label: {
+    fontSize: 20,
+    color: "#333",
+    marginBottom: 8,
+    fontWeight: "500",
+  },
+  input: {
+    width: 250,
+    height: 45,
+    borderColor: "#AEE1F9",
+    borderWidth: 2,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginBottom: 25,
+  },
+  startButton: {
+    width: 200,
+    height: 50,
+    backgroundColor: "#A8DADC",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
+  },
+  startText: {
+    color: "#333",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  exitButton: {
+    width: 200,
+    height: 50,
+    backgroundColor: "#CDECF5",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  exitText: {
+    color: "#333",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
 });

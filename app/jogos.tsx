@@ -47,7 +47,7 @@ export default function Jogos() {
 
       <TouchableOpacity
         style={[styles.card, { backgroundColor: "#FEB2B2" }]}
-        onPress={() => router.push("/jogoCores")}
+        onPress={() => router.push("/jogo-cores")}
       >
         <Image
           source={require("../assets/img/cores.png")}

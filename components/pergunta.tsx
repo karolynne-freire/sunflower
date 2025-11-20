@@ -1,77 +1,66 @@
 import React, { useEffect, useState } from "react";
-import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useHumor } from "../app/context/HumorContext";
 
-export default function PerguntaEmocional() {
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [mood, setMood] = useState<"feliz" | "triste" | null>(null);
-  const [question, setQuestion] = useState<string>("");
+// Tipagem correta das props
+type PerguntaProps = {
+  visible: boolean;     // controla abertura do modal
+  onClose: () => void;  // função para fechar e continuar fluxo
+};
 
-  const questions: string[] = [
+export default function Pergunta({ visible, onClose }: PerguntaProps) {
+  const [question, setQuestion] = useState("");
+  const { setHumor } = useHumor();
+
+  const questions = [
     "Você sorriu hoje?",
     "Você se sentiu bem consigo mesmo(a)?",
     "Você fez algo que te deixou feliz?",
   ];
 
+  // Escolhe pergunta aleatória quando o modal abre
   useEffect(() => {
-    const interval = setInterval(() => {
-      const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+    if (visible) {
+      const randomQuestion =
+        questions[Math.floor(Math.random() * questions.length)];
       setQuestion(randomQuestion);
-      setShowModal(true);
-    }, 15000); 
-
-    return () => clearInterval(interval);
-  }, []);
+    }
+  }, [visible]);
 
   const handleAnswer = (answer: "sim" | "nao") => {
-    setMood(answer === "sim" ? "feliz" : "triste");
-    setShowModal(false);
+    const mood = answer === "sim" ? "feliz" : "triste";
+    setHumor(mood);
+    onClose(); // fecha modal e volta pro fluxo (ex: Home)
   };
 
   return (
-    <View style={styles.container}>
-      {mood === "feliz" && (
-        <Image source={require("../assets/img/feliz.png")} style={styles.image} />
-      )}
+    <Modal transparent visible={visible} animationType="fade">
+      <View style={styles.modalBackground}>
+        <View style={styles.modalBox}>
+          <Text style={styles.question}>{question}</Text>
 
-      {mood === "triste" && (
-        <Image source={require("../assets/img/triste.png")} style={styles.image} />
-      )}
+          <View style={styles.buttons}>
+            <TouchableOpacity
+              onPress={() => handleAnswer("sim")}
+              style={[styles.btn, { backgroundColor: "#4CAF50" }]}
+            >
+              <Text style={styles.btnText}>Sim</Text>
+            </TouchableOpacity>
 
-      <Modal transparent visible={showModal} animationType="fade">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalBox}>
-            <Text style={styles.question}>{question}</Text>
-            <View style={styles.buttons}>
-              <TouchableOpacity
-                onPress={() => handleAnswer("sim")}
-                style={[styles.btn, { backgroundColor: "#4CAF50" }]}
-              >
-                <Text style={styles.btnText}>Sim</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => handleAnswer("nao")}
-                style={[styles.btn, { backgroundColor: "#f44336" }]}
-              >
-                <Text style={styles.btnText}>Não</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => handleAnswer("nao")}
+              style={[styles.btn, { backgroundColor: "#f44336" }]}
+            >
+              <Text style={styles.btnText}>Não</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </Modal>
-    </View>
+      </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    alignItems: "center",
-  },
-  image: {
-    width: 100,
-    height: 100,
-    marginTop: 20,
-  },
   modalBackground: {
     flex: 1,
     justifyContent: "center",
@@ -83,6 +72,7 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 20,
     alignItems: "center",
+    width: "80%",
   },
   question: {
     fontSize: 18,
@@ -104,3 +94,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+

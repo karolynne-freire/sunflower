@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -17,6 +18,7 @@ export default function JogoMemoria() {
   const [cards, setCards] = useState<Card[]>([]);
   const [selected, setSelected] = useState<Card[]>([]);
   const [matchedPairs, setMatchedPairs] = useState(0);
+  const [errors, setErrors] = useState(0);
 
   useEffect(() => {
     const duplicated = [...images, ...images];
@@ -38,6 +40,7 @@ export default function JogoMemoria() {
       c.id === card.id ? { ...c, flipped: true } : c
     );
     setCards(flippedCards);
+
     const newSelected = [...selected, { ...card, flipped: true }];
     setSelected(newSelected);
 
@@ -62,13 +65,22 @@ export default function JogoMemoria() {
           );
           setSelected([]);
         }, 1000);
+        setErrors((prev) => prev + 1);
       }
     }
   };
 
+  useEffect(() => {
+    if (matchedPairs === images.length) {
+      router.push("/resultado?status=vitoria");
+    } else if (errors >= 3) {
+      router.push("/resultado?status=derrota");
+    }
+  }, [matchedPairs, errors]);
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Jogo da Memória </Text>
+      <Text style={styles.title}>Jogo da Memória</Text>
 
       <View style={styles.grid}>
         {cards.map((card) => (
@@ -87,9 +99,7 @@ export default function JogoMemoria() {
         ))}
       </View>
 
-      {matchedPairs === images.length && (
-        <Text style={styles.victory}>Parabéns! Você venceu! </Text>
-      )}
+      <Text style={styles.info}>Erros: {errors} / 3</Text>
     </View>
   );
 }
@@ -135,10 +145,10 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
   },
-  victory: {
+  info: {
     marginTop: 20,
-    fontSize: 20,
-    color: "#2E8B57",
-    fontWeight: "bold",
+    fontSize: 18,
+    color: "#333",
   },
 });
+

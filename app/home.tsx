@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   emotionText: {
-    fontSize: 20,
+    fontSize: 30,
     color: "#333",
     textAlign: "center",
     marginBottom: 15,
@@ -133,4 +133,6 @@ const styles = StyleSheet.create({
     gap: 15,
   },
 });
+
+
 

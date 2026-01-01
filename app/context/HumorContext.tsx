@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 
-type Humor = "feliz" | "triste" | "bravo" | null;
+export type Humor = "feliz" | "triste" | "bravo" | "ansioso" | null;
 
 type HumorContextType = {
   humor: Humor;
@@ -15,7 +15,7 @@ const HumorContext = createContext<HumorContextType>({
 export const HumorProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [humor, setHumor] = useState<Humor>("bravo"); // padrão inicial
+  const [humor, setHumor] = useState<Humor>(null);
 
   return (
     <HumorContext.Provider value={{ humor, setHumor }}>
@@ -25,3 +25,4 @@ export const HumorProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 export const useHumor = () => useContext(HumorContext);
+

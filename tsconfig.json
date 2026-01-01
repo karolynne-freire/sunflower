@@ -1,16 +1,6 @@
 {
+  "compilerOptions": {},
   "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "strict": true,
-    "baseUrl": ".", // Manter a correção anterior
-    "moduleResolution": "bundler", 
-    "ignoreDeprecations": "5.0",
-    "paths": {
-      "@/*": [
-        "./*"
-      ]
-    }
-  },
   "include": [
     "**/*.ts",
     "**/*.tsx",

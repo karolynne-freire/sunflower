@@ -1,41 +1,31 @@
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    ImageSourcePropType,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ImageSourcePropType,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import GameHeader from "../components/game-header";
+import GameLayout from "../components/game-layout";
 
-const level1: ImageSourcePropType[] = [
+// 🔹 SOMENTE NIVEL 1 (2 PEÇAS)
+const puzzleImages: ImageSourcePropType[] = [
   require("../assets/img/puzzle/primeiro/cobrinha1.png"),
   require("../assets/img/puzzle/primeiro/cobrinha2.png"),
 ];
 
-const level2: ImageSourcePropType[] = [
-  require("../assets/img/puzzle/segundo/cobrinha1.png"),
-  require("../assets/img/puzzle/segundo/cobrinha2.png"),
-  require("../assets/img/puzzle/segundo/cobrinha3.png"),
-  require("../assets/img/puzzle/segundo/cobrinha4.png"),
-];
-
 export default function Puzzler() {
-  const [level, setLevel] = useState(1);
-  const [correctOrder, setCorrectOrder] = useState<ImageSourcePropType[]>([]);
+  const [correctOrder] = useState(puzzleImages);
   const [pieces, setPieces] = useState<ImageSourcePropType[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
+  const [lives, setLives] = useState(3);
 
   useEffect(() => {
-    if (level === 1) setCorrectOrder(level1);
-    if (level === 2) setCorrectOrder(level2);
-  }, [level]);
-
-  useEffect(() => {
-    if (correctOrder.length > 0) shuffle();
-  }, [correctOrder]);
+    shuffle();
+  }, []);
 
   function shuffle() {
     const shuffled = [...correctOrder].sort(() => Math.random() - 0.5);
@@ -62,109 +52,80 @@ export default function Puzzler() {
   function checkWin(arr: ImageSourcePropType[]) {
     const win = arr.every((img, index) => img === correctOrder[index]);
 
-    if (!win) return;
+    // 🎉 GANHOU
+    if (win) {
+      router.push({
+        pathname: "/resultado",
+        params: {
+          status: "vitoria",
+          mensagem: "Você conseguiu montar o quebra-cabeça! 🎉",
+        },
+      });
+      return;
+    }
 
-    if (level === 1) {
-      Alert.alert("Muito bem! 🎉", "Vamos para o nível 2!", [
-        { text: "Continuar", onPress: () => setLevel(2) },
-      ]);
-    } else {
-      Alert.alert("Parabéns 🎉", "Você completou todos os níveis!");
+    // ❌ ERROU → perde tentativa
+    const newLives = lives - 1;
+    setLives(newLives);
+
+    // 😢 PERDEU
+    if (newLives <= 0) {
+      router.push({
+        pathname: "/resultado",
+        params: {
+          status: "derrota",
+          mensagem: "Você usou todas as tentativas 😔",
+        },
+      });
     }
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.back}>← Voltar</Text>
-        </TouchableOpacity>
+    <GameLayout>
+      <GameHeader title="Quebra-Cabeça" subtitle="Monte corretamente" />
 
-        <Text style={styles.title}>🧩 Quebra-Cabeça — Nível {level}</Text>
-      </View>
+      <Text style={styles.lives}>Tentativas restantes: {lives}</Text>
 
-      <View style={styles.card}>
-        <View style={[styles.board, level === 1 && { flexDirection: "row" }]}>
-          {pieces.map((img, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.piece,
-                level === 1 && styles.level1Piece,
-                level === 2 && styles.level2Piece,
-                selected === index && styles.selected,
-              ]}
-              onPress={() => handleSelect(index)}
-            >
-              <Image source={img} style={styles.image} />
-            </TouchableOpacity>
-          ))}
-        </View>
+      <View style={styles.board}>
+        {pieces.map((img, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.piece,
+              selected === index && styles.selected,
+            ]}
+            onPress={() => handleSelect(index)}
+          >
+            <Image source={img} style={styles.image} />
+          </TouchableOpacity>
+        ))}
       </View>
 
       <TouchableOpacity style={styles.button} onPress={shuffle}>
         <Text style={styles.buttonText}>🔄 Embaralhar</Text>
       </TouchableOpacity>
-    </View>
+    </GameLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
+  board: {
+    width: 300,
+    height: 350,
+    flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "center",
-    backgroundColor: "#FAF8F0",
-    paddingTop: 20,
   },
 
-  header: {
-    width: "90%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  lives: {
+    fontSize: 18,
+    fontWeight: "bold",
     marginBottom: 15,
   },
 
-  back: {
-    fontSize: 20,
-  },
-
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-  },
-
-  card: {
-    backgroundColor: "#CDECF5",
-    width: 340,
-    height: 360,
-    borderRadius: 25,
-    alignItems: "center",
-    justifyContent: "center",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 10,
-    elevation: 6,
-  },
-
-  board: {
-    width: 300,
-    height: 300,
-    flexWrap: "wrap",
-  },
-
-  level1Piece: {
+  piece: {
     width: "50%",
     height: "100%",
-    padding: 4,
-  },
-
-  level2Piece: {
-    width: "50%",
-    height: "50%",
     padding: 4,
   },
 
@@ -172,10 +133,6 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#facc15",
     borderRadius: 10,
-  },
-
-  piece: {
-    padding: 4,
   },
 
   image: {

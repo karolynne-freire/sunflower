@@ -36,7 +36,7 @@ export default function Jogos() {
 
       <TouchableOpacity
         style={[styles.card, { backgroundColor: "#C6F6D5" }]}
-        onPress={() => router.push("/memoria")}
+        onPress={() => router.push("/snake")}
       >
         <Image
           source={require("../assets/img/cobrinha.png")}
@@ -96,9 +96,9 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   icon: {
-    width: 90,
-    height: 90,
-    marginRight: 20,
+  width: 120,
+  height: 120,
+  resizeMode: "contain",
   },
   text: {
     fontSize: 30,

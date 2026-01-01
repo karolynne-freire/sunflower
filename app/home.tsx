@@ -25,17 +25,33 @@ export default function Home() {
           image: require("../assets/img/feliz.png"),
           text: "Seu girassol está feliz, assim como você pode estar se sentindo agora!",
         };
+
       case "triste":
         return {
           avatar: require("../assets/img/perfil-triste.png"),
           image: require("../assets/img/triste.png"),
           text: "Seu girassol está triste, talvez precise de um pouco de sol e carinho.",
         };
-      default:
+
+      case "bravo":
         return {
           avatar: require("../assets/img/perfil-bravo.png"),
           image: require("../assets/img/bravo.png"),
-          text: "Seu girassol está bravo, assim como você pode estar se sentindo agora.",
+          text: "Seu girassol está bravo, talvez algo tenha te incomodado hoje.",
+        };
+
+      case "ansioso":
+        return {
+          avatar: require("../assets/img/perfil-ansioso.png"),
+          image: require("../assets/img/ansioso.png"),
+          text: "Seu girassol está ansioso, respire fundo... tudo vai dar certo!",
+        };
+
+      default:
+        return {
+          avatar: require("../assets/img/perfil-feliz.png"),
+          image: require("../assets/img/sunny-ideia.png"),
+          text: "Como você está hoje? Vamos descobrir juntos!",
         };
     }
   };
@@ -61,7 +77,9 @@ export default function Home() {
 
       <View style={styles.buttonContainer}>
         <Button title="Jogar" backgroundColor="#A8E6CF" onPress={() => router.push("/jogos")} />
-        <Button title="Sair" backgroundColor="#CDECF5" onPress={() => router.back()} />
+        <Button title="Sair" backgroundColor="#CDECF5" onPress={() => router.replace("/")} 
+/>
+
       </View>
     </View>
   );
@@ -133,6 +151,5 @@ const styles = StyleSheet.create({
     gap: 15,
   },
 });
-
 
 

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useHumor } from "../app/context/HumorContext";
 
-// Tipagem correta das props
 type PerguntaProps = {
-  visible: boolean;     // controla abertura do modal
-  onClose: () => void;  // função para fechar e continuar fluxo
+  visible: boolean;
+  onClose: () => void;
 };
 
 export default function Pergunta({ visible, onClose }: PerguntaProps) {
@@ -16,9 +15,10 @@ export default function Pergunta({ visible, onClose }: PerguntaProps) {
     "Você sorriu hoje?",
     "Você se sentiu bem consigo mesmo(a)?",
     "Você fez algo que te deixou feliz?",
+    "Você fez algo que te deixou ansioso?",
+    "Você fez algo que te deixou bravo?",
   ];
 
-  // Escolhe pergunta aleatória quando o modal abre
   useEffect(() => {
     if (visible) {
       const randomQuestion =
@@ -28,32 +28,44 @@ export default function Pergunta({ visible, onClose }: PerguntaProps) {
   }, [visible]);
 
   const handleAnswer = (answer: "sim" | "nao") => {
-    const mood = answer === "sim" ? "feliz" : "triste";
+    let mood: "feliz" | "triste" | "ansioso" | "bravo" = "feliz";
+
+    if (question.includes("ansioso")) {
+      mood = answer === "sim" ? "ansioso" : "feliz";
+    } else if (question.includes("bravo")) {
+      mood = answer === "sim" ? "bravo" : "feliz";
+    } else {
+      mood = answer === "sim" ? "feliz" : "triste";
+    }
+
     setHumor(mood);
-    onClose(); // fecha modal e volta pro fluxo (ex: Home)
+    onClose();
   };
 
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View style={styles.modalBackground}>
         <View style={styles.modalBox}>
+                    <Image
+            source={require("../assets/img/pergunta.png")}
+            style={styles.character}
+            resizeMode="contain"
+          />
+
+          {/* Texto */}
           <Text style={styles.question}>{question}</Text>
 
+          {/* Botões */}
           <View style={styles.buttons}>
-            <TouchableOpacity
-              onPress={() => handleAnswer("sim")}
-              style={[styles.btn, { backgroundColor: "#4CAF50" }]}
-            >
-              <Text style={styles.btnText}>Sim</Text>
+            <TouchableOpacity onPress={() => handleAnswer("sim")} style={styles.btnWhite}>
+              <Text style={styles.btnWhiteText}>Sim</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => handleAnswer("nao")}
-              style={[styles.btn, { backgroundColor: "#f44336" }]}
-            >
-              <Text style={styles.btnText}>Não</Text>
+            <TouchableOpacity onPress={() => handleAnswer("nao")} style={styles.btnWhite}>
+              <Text style={styles.btnWhiteText}>Não</Text>
             </TouchableOpacity>
           </View>
+
         </View>
       </View>
     </Modal>
@@ -67,31 +79,58 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
   },
+
   modalBox: {
-    backgroundColor: "white",
-    padding: 25,
-    borderRadius: 20,
-    alignItems: "center",
+    backgroundColor: "#F6AFA3", 
     width: "80%",
+    padding: 20,
+    borderRadius: 25,
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 6,
   },
+
+  character: {
+    width: 160,
+    height: 160,
+    position: "absolute",
+    top: -50,
+    right: -30,
+  },
+
   question: {
-    fontSize: 18,
-    marginBottom: 15,
+    fontSize: 28,
+    color: "#333",
     textAlign: "center",
+    marginTop: 30,
+    marginBottom: 20,
+    fontWeight: "600",
+    lineHeight: 24,
+    width: "70%",
   },
+
   buttons: {
     flexDirection: "row",
     gap: 10,
   },
-  btn: {
-    padding: 10,
-    borderRadius: 10,
-    width: 80,
-    alignItems: "center",
+
+  btnWhite: {
+    backgroundColor: "#FFF",
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
-  btnText: {
-    color: "white",
-    fontWeight: "bold",
+
+  btnWhiteText: {
+    fontSize: 25,
+    color: "#555",
+    fontWeight: "600",
   },
 });
 

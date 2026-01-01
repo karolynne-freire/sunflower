@@ -15,7 +15,7 @@ export default function Login() {
     <View style={styles.container}>
       <View style={styles.imageCircle}>
         <Image
-          source={require("../../assets/img/feliz.png")}
+          source={require("../../assets/img/perfil-feliz.png")}
           style={styles.image}
           resizeMode="contain"
         />
@@ -64,14 +64,14 @@ const styles = StyleSheet.create({
     height: 150,
   },
   label: {
-    fontSize: 20,
+    fontSize: 30,
     color: "#333",
     marginBottom: 8,
     fontWeight: "500",
   },
   input: {
     width: 250,
-    height: 45,
+    height: 60,
     borderColor: "#AEE1F9",
     borderWidth: 2,
     borderRadius: 10,
@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   startButton: {
-    width: 200,
-    height: 50,
+    width: 250,
+    height: 60,
     backgroundColor: "#A8DADC",
     borderRadius: 10,
     alignItems: "center",
@@ -89,12 +89,12 @@ const styles = StyleSheet.create({
   },
   startText: {
     color: "#333",
-    fontSize: 18,
+    fontSize: 30,
     fontWeight: "bold",
   },
   exitButton: {
-    width: 200,
-    height: 50,
+    width: 250,
+    height: 60,
     backgroundColor: "#CDECF5",
     borderRadius: 10,
     alignItems: "center",
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   exitText: {
     color: "#333",
-    fontSize: 18,
+    fontSize: 30,
     fontWeight: "bold",
   },
 });

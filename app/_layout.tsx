@@ -1,18 +1,30 @@
-import { Stack } from "expo-router";
-
-const userIsLoggedIn = false; // alterar para true quando implementar login
+import { Stack, useRouter } from "expo-router";
+import { useEffect } from "react";
+import { HumorProvider } from "../app/context/HumorContext";
 
 export default function RootLayout() {
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {/* O expo-router automaticamente detecta o grupo (onboarding) */}
-      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+  const router = useRouter();
+  const userIsLoggedIn = false;
 
-      {/* As outras rotas ficam fora do grupo */}
-      <Stack.Screen name="home" />
-      <Stack.Screen name="pag-carregamento" />
-      <Stack.Screen name="jogos" />
-      <Stack.Screen name="[game_id]" />
-    </Stack>
+  useEffect(() => {
+    setTimeout(() => {
+      if (userIsLoggedIn) {
+        router.replace("/home");
+      } else {
+        router.replace("/(onboarding)");
+      }
+    }, 50);
+  }, []);
+
+  return (
+    <HumorProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+
+        <Stack.Screen name="home" />
+        <Stack.Screen name="jogos" />
+        <Stack.Screen name="login" />
+      </Stack>
+    </HumorProvider>
   );
 }

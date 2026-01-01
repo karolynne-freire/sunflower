@@ -1,42 +1,95 @@
 # 🌻 Sunflower
 
-**Sunflower** é um aplicativo mobile em desenvolvimento que tem como objetivo auxiliar no reconhecimento e interpretação de emoções em crianças atípicas. Este projeto faz parte de uma ação de extensão universitária.
+**Sunflower** é um aplicativo mobile desenvolvido com foco no apoio ao **reconhecimento e interpretação de emoções em crianças atípicas**, utilizando jogos educativos e feedback visual amigável.
+O projeto faz parte de uma **ação de extensão universitária** e está em desenvolvimento ativo.
 
+---
 
-## 🎯 Objetivo
+## 🎯 Objetivo do Projeto
 
-Desenvolver um aplicativo que:
+O Sunflower busca:
 
-- Seja simples, acessível e adaptado ao público infantil.
+* 🌼 Auxiliar crianças a identificar e compreender suas emoções
+* 🧠 Estimular habilidades cognitivas através de jogos lúdicos
+* 🎮 Tornar o aprendizado divertido, seguro e acessível
+* 💛 Criar um ambiente acolhedor e visualmente amigável
+
+---
+
+## 😊 Como o App Funciona
+
+Logo no início, o usuário responde uma pergunta simples sobre como se sente.
+Com base nessa resposta, o aplicativo define um **estado de humor**, que é refletido no:
+
+* 👤 Perfil do usuário
+* 🌻 Estado do girassol
+* 🏠 Tela principal
+
+### Humores atualmente suportados
+
+* 😄 Feliz
+* 😢 Triste
+* 😡 Bravo
+* 😰 Ansioso
+
+---
+
+## 🎮 Jogos Disponíveis
+
+O aplicativo possui um conjunto de minigames educativos
+(cada um atualmente com **nível 1**):
+
+* ✔️ **Jogo da Memória** – estimula atenção e memorização
+* ✔️ **Snake (Jogo da Cobrinha)** – coordenação motora e concentração
+* ✔️ **Quebra-Cabeça** – raciocínio lógico
+* ✔️ **Jogo das Cores** – reconhecimento visual e associação
+
+Todos os jogos possuem interação simples e pensada para o público infantil.
+
+---
 
 ## 🛠️ Tecnologias Utilizadas
 
-- [React Native](https://reactnative.dev/) – desenvolvimento mobile multiplataforma;
-- [TypeScript](https://www.typescriptlang.org/) – linguagem base;
-- Outras tecnologias ainda serão definidas ao longo do desenvolvimento.
+* **React Native** – desenvolvimento mobile multiplataforma
+* **TypeScript** – tipagem estática e maior segurança
+* **Expo** – agilidade no desenvolvimento e execução do app
 
-## 👩‍💻 Desenvolvedores
-
-- **Karolynne Freire**  
-- **Eduardo Barros**
-
-## 👨‍🏫 Orientador
-
-- **Prof. Emanuel Dantas**
+---
 
 ## 📅 Status do Projeto
 
-> Em fase inicial de desenvolvimento – estruturação da ideia, levantamento de requisitos e testes iniciais com o React Native.
+🚧 **Em desenvolvimento ativo**
 
-## 📌 Projeto Base
+* Sistema de humor implementado
+* Jogos funcionando com nível inicial
+* Fluxo principal do app estruturado
+* Melhorias de UI/UX em andamento
 
-Este projeto tem como base o repositório [SunflowerApp](https://github.com/smalljooj/SunflowerApp.git), para o desenvolvimento e estruturação da aplicação.
-Alguns conceitos, padrões de arquitetura e organização de código foram adaptados a partir do projeto original, respeitando as necessidades específicas deste projeto. Enquanto o projeto original
-foi desenvolvido em Kotlin para Android nativo, esta versão está sendo construída em React Native para permitir desenvolvimento multiplataforma, facilitando a execução tanto em Android quanto iOS com uma única base de código.
+---
+
+## 📌 Base do Projeto
+
+O Sunflower tem como referência o repositório original:
+👉 **SunflowerApp**
+
+Apesar disso, esta versão foi totalmente **reconstruída em React Native**, permitindo desenvolvimento multiplataforma, diferente do projeto base que foi desenvolvido em **Kotlin para Android nativo**.
+
+---
+
+## 👩‍💻 Desenvolvedora
+
+* **Karolynne Freire**
+
+---
+
+## 👨‍🏫 Orientador
+
+* **Prof. Emanuel Dantas**
+
+---
 
 ## 📄 Licença
 
-Este projeto faz parte de uma ação de extensão universitária e está sendo desenvolvido com fins educacionais.  
-(Licença a ser definida de acordo com a política da instituição.)
+Este projeto faz parte de uma ação de extensão universitária e possui fins educacionais.
+📌 Licença será definida conforme diretrizes institucionais.
 
----

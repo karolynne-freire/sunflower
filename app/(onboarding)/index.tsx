@@ -14,14 +14,13 @@ export default function Presentation1() {
         />
 
         <View style={styles.textBox}>
-          <Text style={styles.title}>Olá, amiguinho(a)!</Text>
+          <Text style={styles.title}>Olá,{"\n"}amiguinho(a)!</Text>
           <Text style={styles.subtitle}>Eu sou o Sunny!</Text>
         </View>
       </View>
 
       <Text style={styles.text}>
         Aqui, nós vamos brincar e aprender juntos!{"\n"}
-        Durante o jogo, eu vou te fazer algumas perguntinhas.
       </Text>
 
      <Link href="/Presentation2" asChild>
@@ -53,18 +52,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: "bold",
     marginBottom:5,
     color: "#333",
   },
   subtitle: {
-    fontSize: 25,
+    fontSize: 30,
     color: "#333",
   },
   text: {
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 30,
     color: "#333",
     marginBottom: 30,
   },

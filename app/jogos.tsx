@@ -25,7 +25,7 @@ export default function Jogos() {
 
       <TouchableOpacity
         style={[styles.card, { backgroundColor: "#FBD38D" }]}
-        onPress={() => router.push("/memoria")}
+        onPress={() => router.push("/puzzler")}
       >
         <Image
           source={require("../assets/img/quebra.png")}
@@ -36,7 +36,7 @@ export default function Jogos() {
 
       <TouchableOpacity
         style={[styles.card, { backgroundColor: "#C6F6D5" }]}
-        onPress={() => router.push("/jogoCobrinha")}
+        onPress={() => router.push("/snake")}
       >
         <Image
           source={require("../assets/img/cobrinha.png")}
@@ -47,7 +47,7 @@ export default function Jogos() {
 
       <TouchableOpacity
         style={[styles.card, { backgroundColor: "#FEB2B2" }]}
-        onPress={() => router.push("/jogoCores")}
+        onPress={() => router.push("/jogo-cores")}
       >
         <Image
           source={require("../assets/img/cores.png")}
@@ -89,21 +89,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 15,
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 40,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
   },
   icon: {
-    width: 60,
-    height: 60,
-    marginRight: 20,
+  width: 120,
+  height: 120,
+  resizeMode: "contain",
   },
   text: {
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: "600",
     color: "#333",
   },
 });
+
 

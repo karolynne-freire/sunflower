@@ -1,239 +1,316 @@
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  Image,
-  ImageStyle,
-  StyleSheet as RNStyleSheet,
-  Text,
-  TextStyle,
-  TouchableOpacity,
-  View,
-  ViewStyle
-} from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import GameHeader from "../components/game-header";
-import GameLayout from "../components/game-layout";
-
-type Card = {
+type CardType = {
   id: number;
   img: any;
   flipped: boolean;
   matched: boolean;
 };
 
-// 🔥 IMAGENS
-const levelImages = [
-  [
-    require("../assets/img/cobrinha.png"),
-    require("../assets/img/cores.png"),
-  ],
-  [
-    require("../assets/img/cobrinha.png"),
-    require("../assets/img/cores.png"),
-    require("../assets/img/memoria.png"),
-  ],
-  [
-    require("../assets/img/cobrinha.png"),
-    require("../assets/img/cores.png"),
-    require("../assets/img/memoria.png"),
-    require("../assets/img/quebra.png"),
-  ],
-  [
-    require("../assets/img/cobrinha.png"),
-    require("../assets/img/cores.png"),
-    require("../assets/img/memoria.png"),
-    require("../assets/img/quebra.png"),
-    require("../assets/img/pergunta.png"),
-  ],
-];
-
-export default function JogoMemoria() {
+export default function Memoria() {
+  const [step, setStep] = useState<"intro" | "memorize" | "transition" | "game">("intro");
   const [level, setLevel] = useState(1);
-  const [cards, setCards] = useState<Card[]>([]);
-  const [selected, setSelected] = useState<Card[]>([]);
-  const [matchedPairs, setMatchedPairs] = useState(0);
+  const [cards, setCards] = useState<CardType[]>([]);
+  const [memorizeTime, setMemorizeTime] = useState(5);
+  const [selected, setSelected] = useState<number[]>([]);
   const [errors, setErrors] = useState(0);
-  const [showLevelMsg, setShowLevelMsg] = useState(true);
 
   const maxLevel = 4;
 
-  function startLevel(currentLevel: number) {
-    const imgs = levelImages[currentLevel - 1];
-    const duplicated = [...imgs, ...imgs];
+  const imageLevels = [
+    [
+      require("../assets/img/cobrinha.png"),
+      require("../assets/img/cores.png"),
+    ],
+    [
+      require("../assets/img/cobrinha.png"),
+      require("../assets/img/cores.png"),
+      require("../assets/img/memoria.png"),
+    ],
+    [
+      require("../assets/img/cobrinha.png"),
+      require("../assets/img/cores.png"),
+      require("../assets/img/memoria.png"),
+      require("../assets/img/quebra.png"),
+    ],
+    [
+      require("../assets/img/cobrinha.png"),
+      require("../assets/img/cores.png"),
+      require("../assets/img/memoria.png"),
+      require("../assets/img/quebra.png"),
+      require("../assets/img/pergunta.png"),
+    ]
+  ];
 
-    const shuffled = duplicated
+  function getCardSize() {
+    if (level === 1) return 150;
+    if (level === 2) return 130;
+    if (level === 3) return 115;
+    return 100;
+  }
+
+  const cardSize = getCardSize();
+
+  function createCards() {
+    const imgs = imageLevels[level - 1];
+
+    const duplicated = [...imgs, ...imgs]
       .map((img, index) => ({
         id: index,
         img,
-        flipped: false,
-        matched: false,
+        flipped: step === "memorize",
+        matched: false
       }))
       .sort(() => Math.random() - 0.5);
 
-    setCards(shuffled);
-    setMatchedPairs(0);
-    setSelected([]);
-    setShowLevelMsg(true);
-
-    setTimeout(() => setShowLevelMsg(false), 1500);
+    setCards(duplicated);
+    setErrors(0);
   }
 
   useEffect(() => {
-    startLevel(level);
+    createCards();
   }, [level]);
 
-  const handlePress = (card: Card) => {
-    if (selected.length === 2 || card.flipped || card.matched) return;
+  useEffect(() => {
+    if (step === "memorize") {
+      setMemorizeTime(5);
 
-    const flippedCards = cards.map((c) =>
-      c.id === card.id ? { ...c, flipped: true } : c
+      const timer = setInterval(() => {
+        setMemorizeTime(old => {
+          if (old === 1) {
+            clearInterval(timer);
+            setStep("transition");
+
+            setTimeout(() => {
+              const hidden = cards.map(c => ({ ...c, flipped: false }));
+              setCards(hidden);
+              setStep("game");
+            }, 900);
+          }
+          return old - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [step]);
+
+  function handleCardPress(id: number) {
+    if (step !== "game") return;
+
+    const updated = cards.map(c =>
+      c.id === id && !c.flipped && !c.matched
+        ? { ...c, flipped: true }
+        : c
     );
-    setCards(flippedCards);
 
-    const newSelected = [...selected, { ...card, flipped: true }];
+    setCards(updated);
+
+    const newSelected = [...selected, id];
     setSelected(newSelected);
 
     if (newSelected.length === 2) {
-      const [first, second] = newSelected;
+      const [a, b] = newSelected;
+      const cardA = updated.find(c => c.id === a);
+      const cardB = updated.find(c => c.id === b);
 
-      if (first.img === second.img) {
-        setCards((prev) =>
-          prev.map((c) =>
-            c.img === first.img ? { ...c, matched: true } : c
-          )
+      if (cardA?.img === cardB?.img) {
+        const matchedCards = updated.map(c =>
+          c.img === cardA?.img ? { ...c, matched: true } : c
         );
-        setMatchedPairs((prev) => prev + 1);
-        setSelected([]);
+
+        setCards(matchedCards);
+
+        const finished = matchedCards.every(c => c.matched);
+        if (finished) {
+          setTimeout(() => {
+            if (level === maxLevel) {
+              router.push("/resultado?status=vitoria");
+            } else {
+              setLevel(level + 1);
+              setStep("intro");
+            }
+          }, 800);
+        }
+
       } else {
+        setErrors(prev => {
+          const updatedErrors = prev + 1;
+
+          if (updatedErrors >= 3) {
+            setTimeout(() => {
+              router.push("/resultado?status=derrota");
+            }, 600);
+          }
+
+          return updatedErrors;
+        });
+
         setTimeout(() => {
-          setCards((prev) =>
-            prev.map((c) =>
-              c.id === first.id || c.id === second.id
-                ? { ...c, flipped: false }
-                : c
-            )
+          const reverted = updated.map(c =>
+            c.id === a || c.id === b ? { ...c, flipped: false } : c
           );
-          setSelected([]);
-        }, 800);
-        setErrors((prev) => prev + 1);
+          setCards(reverted);
+        }, 900);
       }
+
+      setSelected([]);
     }
-  };
-
-  useEffect(() => {
-    const totalPairs = levelImages[level - 1].length;
-
-    if (matchedPairs === totalPairs) {
-      if (level === maxLevel) {
-        router.push("/resultado?status=vitoria");
-      } else {
-        setLevel((prev) => prev + 1);
-      }
-    }
-
-    if (errors >= 3) {
-      router.push("/resultado?status=derrota");
-    }
-  }, [matchedPairs, errors]);
-
+  }
 
   return (
-    <GameLayout>
-      <GameHeader title="Jogo da Memória" subtitle={`Nível ${level}`} />
+    <View style={styles.container}>
+      
+      {step === "intro" && (
+        <View style={styles.centerBox}>
+          <Text style={styles.levelText}>Fase {level}</Text>
 
-      {showLevelMsg && (
-        <View style={styles.levelBox}>
-          <Text style={styles.levelText}>Nível {level}</Text>
+          <Text style={styles.simpleMessage}>
+            Vamos jogar? 
+          </Text>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              createCards();
+              setStep("memorize");
+            }}>
+            <Text style={styles.buttonText}>Começar</Text>
+          </TouchableOpacity>
         </View>
       )}
 
-      <View style={styles.grid}>
-        {cards.map((card) => (
-          <TouchableOpacity
-            key={card.id}
-            style={styles.card}
-            onPress={() => handlePress(card)}
-            activeOpacity={0.8}
-          >
-            {card.flipped || card.matched ? (
-              <Image source={card.img} style={styles.image} />
-            ) : (
-              <View style={styles.cover} />
-            )}
-          </TouchableOpacity>
-        ))}
-      </View>
+      {step === "memorize" && (
+        <View style={styles.centerBox}>
+          <Text style={styles.simpleMessage}>Observe com calma 👀</Text>
+          <Text style={styles.timerText}>{memorizeTime}s</Text>
 
-      <Text style={styles.info}>Erros: {errors} / 3</Text>
-    </GameLayout>
+          <View style={styles.grid}>
+            {cards.map(card => (
+              <View key={card.id} style={[styles.cardOpen,{ width: cardSize, height: cardSize }]}>
+                <Image source={card.img} style={{ width: cardSize * 0.7, height: cardSize * 0.7 }} />
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {step === "transition" && (
+        <View style={styles.centerBox}>
+          <Text style={styles.simpleMessage}>Agora é sua vez! 😄</Text> 
+          <Text style={styles.simpleMessage}>As cartas estão virando…</Text>
+        </View>
+      )}
+
+      {step === "game" && (
+        <View style={styles.centerBox}>
+          <Text style={styles.simpleMessage}>Encontre os pares ⭐</Text>
+          <Text style={styles.errorText}>Erros: {errors} / 3</Text>
+
+          <View style={styles.grid}>
+            {cards.map(card => (
+              <TouchableOpacity
+                key={card.id}
+                onPress={() => handleCardPress(card.id)}
+                activeOpacity={0.8}
+                style={[
+                  card.flipped || card.matched ? styles.cardOpen : styles.cardClosed,
+                  { width: cardSize, height: cardSize }
+                ]}>
+
+                {card.flipped || card.matched ? (
+                  <Image source={card.img} style={{ width: cardSize * 0.7, height: cardSize * 0.7 }} />
+                ) : (
+                  <Text style={styles.question}>?</Text>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+
+    </View>
   );
 }
 
-
-// ---------------- STYLES FIXADOS ----------------
-
-type Styles = {
-  grid: ViewStyle;
-  card: ViewStyle;
-  cover: ViewStyle;
-  image: ImageStyle;
-  info: TextStyle;
-  levelBox: ViewStyle;
-  levelText: TextStyle;
-};
-
-const styles = RNStyleSheet.create<Styles>({
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    width: "90%",
+const styles = StyleSheet.create({
+  container:{
+    flex:1,
+    backgroundColor:"#FAF8F0",
+    alignItems:"center",
+    justifyContent:"center"
   },
 
-  card: {
-    width: 150,
-    height: 150,
-    margin: 8,
-    borderRadius: 15,
-    borderWidth: 2,
-    borderColor: "#AEE1F9",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#CDECF5",
+  centerBox:{
+    width:"95%",
+    alignItems:"center"
   },
 
-  cover: {
-    width: "100%",
-    height: "100%",
-    backgroundColor: "#AEE1F9",
-    borderRadius: 15,
+  levelText:{
+    fontSize:34,
+    fontWeight:"bold",
+    marginBottom:6
   },
 
-  image: {
-    width: 100,
-    height: 100,
+  simpleMessage:{
+    fontSize:26,
+    marginBottom:10
   },
 
-  info: {
-    marginTop: 20,
-    fontSize: 25,
-    color: "#333",
+  timerText:{
+    fontSize:30,
+    fontWeight:"bold",
+    marginBottom:12
   },
 
-  levelBox: {
-    ...RNStyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.3)",
-    zIndex: 999,
+  errorText:{
+    fontSize:22,
+    marginBottom:10
   },
 
-  levelText: {
-    backgroundColor: "#FEB2B2",
-    padding: 20,
-    borderRadius: 10,
-    fontSize: 26,
-    color: "#fff",
-    fontWeight: "bold",
+  button:{
+    backgroundColor:"#AEE1F9",
+    marginTop:20,
+    paddingVertical:28,
+    paddingHorizontal:30,
+    borderRadius:14
   },
+
+  buttonText:{
+    color:"#333",
+    fontSize:22,
+    fontWeight:"bold"
+  },
+
+  grid:{
+    width:"100%",
+    flexDirection:"row",
+    flexWrap:"wrap",
+    justifyContent:"center"
+  },
+
+  cardOpen:{
+    margin:8,
+    backgroundColor:"#AEE1F9",
+    borderRadius:18,
+    alignItems:"center",
+    justifyContent:"center",
+    borderWidth:2,
+    borderColor:"#7EC8E3"
+  },
+
+  cardClosed:{
+    margin:8,
+    backgroundColor:"#BDBDBD",
+    borderRadius:18,
+    alignItems:"center",
+    justifyContent:"center"
+  },
+
+  question:{
+    fontSize:42,
+    fontWeight:"bold"
+  }
 });

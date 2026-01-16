@@ -1,182 +1,285 @@
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import GameHeader from "../components/game-header";
-import GameLayout from "../components/game-layout";
 
 const GRID_SIZE = 10;
-const INITIAL_SPEED = 300;
-const TARGET_APPLES = 4;
+
+// ⚠️ metas acumulativas
+const LEVELS = [
+  { speed: 520, apples: 0 },   // Fase 1
+  { speed: 400, apples: 4 },   // Fase 2
+  { speed: 300, apples: 9 },   // Fase 3
+  { speed: 350, apples: 14 },  // Fase 4 (base)
+];
+
+// ➕ maçãs extras só na fase final
+const FINAL_EXTRA_APPLES = 6;
 
 type Position = { x: number; y: number };
+type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 
 export default function SnakeGame() {
+  const [step, setStep] = useState<"intro" | "game" | "levelUp">("intro");
+  const [level, setLevel] = useState(0);
   const [snake, setSnake] = useState<Position[]>([{ x: 5, y: 5 }]);
   const [food, setFood] = useState<Position>({ x: 2, y: 2 });
   const [lives, setLives] = useState(3);
   const [apples, setApples] = useState(0);
 
-  const directionRef = useRef<"UP" | "DOWN" | "LEFT" | "RIGHT">("RIGHT");
-  const snakeRef = useRef<Position[]>([{ x: 5, y: 5 }]);
-  const foodRef = useRef<Position>({ x: 2, y: 2 });
-  const applesRef = useRef(0); // Ref para contar as maçãs sem atraso de estado
+  const directionRef = useRef<Direction>("RIGHT");
+  const snakeRef = useRef(snake);
+  const foodRef = useRef(food);
+  const applesRef = useRef(0);
+  const levelRef = useRef(0);
+
   const gameLoop = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    startGame();
-    return stopGame;
-  }, []);
+  useEffect(() => { snakeRef.current = snake; }, [snake]);
+  useEffect(() => { foodRef.current = food; }, [food]);
+  useEffect(() => { levelRef.current = level; }, [level]);
 
   function startGame() {
-    stopGame();
-    gameLoop.current = setInterval(moveSnake, INITIAL_SPEED);
+    setSnake([{ x: 5, y: 5 }]);
+    setFood(randomFood([{ x: 5, y: 5 }]));
+    directionRef.current = "RIGHT";
+    setStep("game");
+    startLoop(LEVELS[levelRef.current].speed);
   }
 
-  function stopGame() {
+  function startLoop(speed: number) {
+    stopLoop();
+    gameLoop.current = setInterval(moveSnake, speed);
+  }
+
+  function stopLoop() {
     if (gameLoop.current) clearInterval(gameLoop.current);
   }
 
   function randomFood(currentSnake: Position[]) {
-    let newFood: Position;
-    let isCollision;
+    let pos;
     do {
-      newFood = {
+      pos = {
         x: Math.floor(Math.random() * GRID_SIZE),
         y: Math.floor(Math.random() * GRID_SIZE),
       };
-      isCollision = currentSnake.some(p => p.x === newFood.x && p.y === newFood.y);
-    } while (isCollision);
-    return newFood;
+    } while (currentSnake.some(p => p.x === pos.x && p.y === pos.y));
+    return pos;
   }
 
   function moveSnake() {
     const head = { ...snakeRef.current[0] };
     const dir = directionRef.current;
 
-    if (dir === "UP") head.y -= 1;
-    if (dir === "DOWN") head.y += 1;
-    if (dir === "LEFT") head.x -= 1;
-    if (dir === "RIGHT") head.x += 1;
+    if (dir === "UP") head.y--;
+    if (dir === "DOWN") head.y++;
+    if (dir === "LEFT") head.x--;
+    if (dir === "RIGHT") head.x++;
 
-    // Colisão parede ou corpo
+    // colisão
     if (
-      head.x < 0 || head.x >= GRID_SIZE || 
-      head.y < 0 || head.y >= GRID_SIZE ||
+      head.x < 0 ||
+      head.x >= GRID_SIZE ||
+      head.y < 0 ||
+      head.y >= GRID_SIZE ||
       snakeRef.current.some(p => p.x === head.x && p.y === head.y)
     ) {
-      handleLoseLife();
+      loseLife();
       return;
     }
 
     const newSnake = [head, ...snakeRef.current];
 
-    // Checar se comeu a fruta
+    // 🍎 comeu maçã
     if (head.x === foodRef.current.x && head.y === foodRef.current.y) {
-      // 1. Atualiza a contagem IMEDIATAMENTE no Ref e no State
-      applesRef.current += 1;
-      const currentCount = applesRef.current;
-      setApples(currentCount);
+      const newApples = applesRef.current + 1;
+      applesRef.current = newApples;
+      setApples(newApples);
 
-      // 2. Checa vitória usando o valor atualizado
-      if (currentCount >= TARGET_APPLES) {
-        stopGame();
-        // Pequeno timeout para o usuário ver a cobra encostando na fruta antes de mudar de tela
-        setTimeout(() => {
-            router.push({ 
-                pathname: "/resultado", 
-                params: { status: "vitoria", mensagem: "Você venceu a cobrinha! 🎉" } 
-            });
-        }, 100);
+      const currentLevel = LEVELS[levelRef.current];
+      const nextLevel = LEVELS[levelRef.current + 1];
+
+      // 🏆 ÚLTIMA FASE → precisa comer MAIS maçãs
+      if (!nextLevel) {
+        const finalTarget = currentLevel.apples + FINAL_EXTRA_APPLES;
+
+        if (newApples >= finalTarget) {
+          stopLoop();
+          router.push("/resultado?status=vitoria");
+          return;
+        }
+      }
+
+      // ⬆️ passa de fase
+      if (nextLevel && newApples >= nextLevel.apples) {
+        stopLoop();
+        setLevel(prev => prev + 1);
+        setStep("levelUp");
         return;
       }
 
-      // Se não ganhou, gera nova comida
-      const nextFood = randomFood(newSnake);
-      foodRef.current = nextFood;
-      setFood(nextFood);
-      // Cobra cresce (não faz pop)
+      setFood(randomFood(newSnake));
     } else {
-      newSnake.pop(); // Movimento normal
+      newSnake.pop();
     }
 
-    snakeRef.current = newSnake;
     setSnake(newSnake);
   }
 
-  function handleLoseLife() {
-    setLives(prev => {
-      const remaining = prev - 1;
-      if (remaining <= 0) {
-        stopGame();
-        router.push({ 
-            pathname: "/resultado", 
-            params: { status: "derrota", mensagem: "Suas chances acabaram 😔" } 
-        });
+  function loseLife() {
+    stopLoop();
+
+    setLives(l => {
+      if (l - 1 <= 0) {
+        router.push("/resultado?status=derrota");
+        return 0;
       }
-      return remaining;
+      return l - 1;
     });
 
-    // Reset da lógica interna
-    const resetPos = [{ x: 5, y: 5 }];
-    const resetFood = randomFood(resetPos);
-    
-    snakeRef.current = resetPos;
-    foodRef.current = resetFood;
+    setSnake([{ x: 5, y: 5 }]);
+    setFood(randomFood([{ x: 5, y: 5 }]));
     directionRef.current = "RIGHT";
-
-    setSnake(resetPos);
-    setFood(resetFood);
+    setStep("intro");
   }
 
-  function changeDirection(dir: "UP" | "DOWN" | "LEFT" | "RIGHT") {
-    const opposites = { UP: "DOWN", DOWN: "UP", LEFT: "RIGHT", RIGHT: "LEFT" };
-    if (opposites[dir] === directionRef.current) return;
-    directionRef.current = dir;
+  function changeDirection(dir: Direction) {
+    const opp = { UP: "DOWN", DOWN: "UP", LEFT: "RIGHT", RIGHT: "LEFT" };
+    if (opp[dir] !== directionRef.current) {
+      directionRef.current = dir;
+    }
   }
 
   return (
-    <GameLayout>
-      <GameHeader title="Jogo da Cobrinha" subtitle="Nível 1" />
-      <Text style={styles.info}>🍎 Frutas: {apples} / {TARGET_APPLES} | ❤️ Vidas: {lives}</Text>
+    <View style={styles.container}>
 
-      <View style={styles.board}>
-        {Array.from({ length: GRID_SIZE }).map((_, y) => (
-          <View key={y} style={styles.rowLayout}>
-            {Array.from({ length: GRID_SIZE }).map((_, x) => {
-              const isSnake = snake.some(p => p.x === x && p.y === y);
-              const isFood = food.x === x && food.y === y;
-              return (
-                <View 
-                  key={`${x}-${y}`} 
-                  style={[styles.cell, isSnake && styles.snake, isFood && styles.food]} 
-                />
-              );
-            })}
-          </View>
-        ))}
-      </View>
+      {step === "intro" && (
+        <View style={styles.center}>
+          <Text style={styles.title}>Fase {level + 1}</Text>
+          <Text style={styles.text}>Vamos jogar?</Text>
 
-      <View style={styles.controls}>
-        <TouchableOpacity onPress={() => changeDirection("UP")} style={styles.btn}><Text style={styles.btnText}>⬆️</Text></TouchableOpacity>
-        <View style={styles.row}>
-          <TouchableOpacity onPress={() => changeDirection("LEFT")} style={styles.btn}><Text style={styles.btnText}>⬅️</Text></TouchableOpacity>
-          <TouchableOpacity onPress={() => changeDirection("RIGHT")} style={styles.btn}><Text style={styles.btnText}>➡️</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={startGame}>
+            <Text style={styles.buttonText}>Começar</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => changeDirection("DOWN")} style={styles.btn}><Text style={styles.btnText}>⬇️</Text></TouchableOpacity>
-      </View>
-    </GameLayout>
+      )}
+
+      {step === "levelUp" && (
+        <View style={styles.center}>
+          <Text style={styles.title}>Fase {level + 1} 🎉</Text>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              setStep("game");
+              startLoop(LEVELS[levelRef.current].speed);
+            }}>
+            <Text style={styles.buttonText}>Continuar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {step === "game" && (
+        <>
+          <Text style={styles.simpleMessage}>
+            Coma todas as maças 🍎
+          </Text>
+
+          <Text style={styles.info}>
+            🍎 {apples} | ❤️ {lives} | Fase {level + 1}
+          </Text>
+
+          <View style={styles.board}>
+            {Array.from({ length: GRID_SIZE }).map((_, y) => (
+              <View key={y} style={{ flexDirection: "row" }}>
+                {Array.from({ length: GRID_SIZE }).map((_, x) => {
+                  const isSnake = snake.some(p => p.x === x && p.y === y);
+                  const isFood = food.x === x && food.y === y;
+                  return (
+                    <View
+                      key={`${x}-${y}`}
+                      style={[
+                        styles.cell,
+                        isSnake && styles.snake,
+                        isFood && styles.food,
+                      ]}
+                    />
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+
+          <View style={styles.controls}>
+            <TouchableOpacity onPress={() => changeDirection("UP")} style={styles.btn}>
+              <Text style={styles.arrow}>⬆️</Text>
+            </TouchableOpacity>
+
+            <View style={{ flexDirection: "row", gap: 20 }}>
+              <TouchableOpacity onPress={() => changeDirection("LEFT")} style={styles.btn}>
+                <Text style={styles.arrow}>⬅️</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => changeDirection("RIGHT")} style={styles.btn}>
+                <Text style={styles.arrow}>➡️</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity onPress={() => changeDirection("DOWN")} style={styles.btn}>
+              <Text style={styles.arrow}>⬇️</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  info: { fontSize: 18, fontWeight: "bold", marginBottom: 5, textAlign: 'center' },
-  board: { width: 300, height: 300, backgroundColor: "#CDECF5", borderRadius: 15, overflow: "hidden", marginVertical: 20, borderWidth: 2, borderColor: "#9ADAE6" },
-  rowLayout: { flexDirection: 'row' },
-  cell: { width: 30, height: 30, borderWidth: 0.5, borderColor: "#B0E0E6" },
+  container: { 
+    flex: 1, 
+    alignItems: "center", 
+    justifyContent: "center", 
+    backgroundColor: "#FAF8F0" 
+  },
+  center: { alignItems: "center" },
+  title: { fontSize: 34, fontWeight: "bold", marginBottom: 6 },
+  text: { fontSize: 26 },
+  simpleMessage: { fontSize: 26, marginBottom: 10 },
+  info: { fontSize: 18, marginBottom: 10, fontWeight: "bold" },
+  board: {
+    width: 300,
+    height: 300,
+    backgroundColor: "#CDECF5",
+    borderRadius: 15,
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "#7EC8E3"
+  },
+  cell: {
+    width: 30,
+    height: 30,
+    borderWidth: 0.5,
+    borderColor: "#B0E0E6"
+  },
   snake: { backgroundColor: "#22c55e" },
   food: { backgroundColor: "#ef4444" },
-  controls: { alignItems: "center", gap: 10 },
-  row: { flexDirection: "row", gap: 20 },
-  btn: { backgroundColor: "#FFD84C", width: 60, height: 60, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  btnText: { fontSize: 30 },
-});
+  controls: { marginTop: 20, alignItems: "center", gap: 10 },
+  btn: {
+    backgroundColor: "#AEE1F9",
+    width: 80,
+    height: 80,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#7EC8E3"
+  },
+  arrow: { fontSize: 32 },
+  button: {
+    backgroundColor: "#AEE1F9",
+    marginTop: 20,
+    paddingVertical: 28,
+    paddingHorizontal: 30,
+    borderRadius: 14
+  },
+  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" }
+})

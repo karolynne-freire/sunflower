@@ -31,7 +31,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 15,
   },
-  back: { fontSize: 20 },
-  title: { fontSize: 22, fontWeight: "bold" },
-  subtitle: { fontSize: 16, color: "#666" },
+
+  back: {
+     fontSize: 20 },
+
+  title: { 
+   fontSize: 26,
+    color: "#333",
+    marginBottom: 10,
+    fontWeight: "bold" },
+
+  subtitle: { 
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#444"},
 });

@@ -6,10 +6,10 @@ const GRID_SIZE = 10;
 
 // ⚠️ metas acumulativas
 const LEVELS = [
-  { speed: 520, apples: 0 },   // Fase 1
-  { speed: 400, apples: 4 },   // Fase 2
-  { speed: 300, apples: 9 },   // Fase 3
-  { speed: 350, apples: 14 },  // Fase 4 (base)
+  { speed: 520, apples: 0 }, // Fase 1
+  { speed: 400, apples: 4 }, // Fase 2
+  { speed: 300, apples: 9 }, // Fase 3
+  { speed: 350, apples: 14 }, // Fase 4 (base)
 ];
 
 // ➕ maçãs extras só na fase final
@@ -34,9 +34,15 @@ export default function SnakeGame() {
 
   const gameLoop = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => { snakeRef.current = snake; }, [snake]);
-  useEffect(() => { foodRef.current = food; }, [food]);
-  useEffect(() => { levelRef.current = level; }, [level]);
+  useEffect(() => {
+    snakeRef.current = snake;
+  }, [snake]);
+  useEffect(() => {
+    foodRef.current = food;
+  }, [food]);
+  useEffect(() => {
+    levelRef.current = level;
+  }, [level]);
 
   function startGame() {
     setSnake([{ x: 5, y: 5 }]);
@@ -62,7 +68,7 @@ export default function SnakeGame() {
         x: Math.floor(Math.random() * GRID_SIZE),
         y: Math.floor(Math.random() * GRID_SIZE),
       };
-    } while (currentSnake.some(p => p.x === pos.x && p.y === pos.y));
+    } while (currentSnake.some((p) => p.x === pos.x && p.y === pos.y));
     return pos;
   }
 
@@ -81,7 +87,7 @@ export default function SnakeGame() {
       head.x >= GRID_SIZE ||
       head.y < 0 ||
       head.y >= GRID_SIZE ||
-      snakeRef.current.some(p => p.x === head.x && p.y === head.y)
+      snakeRef.current.some((p) => p.x === head.x && p.y === head.y)
     ) {
       loseLife();
       return;
@@ -104,7 +110,14 @@ export default function SnakeGame() {
 
         if (newApples >= finalTarget) {
           stopLoop();
-          router.push("/resultado?status=vitoria");
+          router.push({
+            pathname: "/resultado",
+            params: {
+              status: "vitoria",
+              niveisConcluidos: 4,
+              historico: "4,2,3",
+            },
+          });
           return;
         }
       }
@@ -112,7 +125,7 @@ export default function SnakeGame() {
       // ⬆️ passa de fase
       if (nextLevel && newApples >= nextLevel.apples) {
         stopLoop();
-        setLevel(prev => prev + 1);
+        setLevel((prev) => prev + 1);
         setStep("levelUp");
         return;
       }
@@ -128,9 +141,16 @@ export default function SnakeGame() {
   function loseLife() {
     stopLoop();
 
-    setLives(l => {
+    setLives((l) => {
       if (l - 1 <= 0) {
-        router.push("/resultado?status=derrota");
+        router.push({
+          pathname: "/resultado",
+          params: {
+            status: "derrota",
+            niveisConcluidos: levelRef.current,
+            historico: "3,1,2",
+          },
+        });
         return 0;
       }
       return l - 1;
@@ -151,7 +171,6 @@ export default function SnakeGame() {
 
   return (
     <View style={styles.container}>
-
       {step === "intro" && (
         <View style={styles.center}>
           <Text style={styles.title}>Fase {level + 1}</Text>
@@ -172,7 +191,8 @@ export default function SnakeGame() {
             onPress={() => {
               setStep("game");
               startLoop(LEVELS[levelRef.current].speed);
-            }}>
+            }}
+          >
             <Text style={styles.buttonText}>Continuar</Text>
           </TouchableOpacity>
         </View>
@@ -180,9 +200,7 @@ export default function SnakeGame() {
 
       {step === "game" && (
         <>
-          <Text style={styles.simpleMessage}>
-            Coma todas as maças 🍎
-          </Text>
+          <Text style={styles.simpleMessage}>Coma todas as maças 🍎</Text>
 
           <Text style={styles.info}>
             🍎 {apples} | ❤️ {lives} | Fase {level + 1}
@@ -192,7 +210,7 @@ export default function SnakeGame() {
             {Array.from({ length: GRID_SIZE }).map((_, y) => (
               <View key={y} style={{ flexDirection: "row" }}>
                 {Array.from({ length: GRID_SIZE }).map((_, x) => {
-                  const isSnake = snake.some(p => p.x === x && p.y === y);
+                  const isSnake = snake.some((p) => p.x === x && p.y === y);
                   const isFood = food.x === x && food.y === y;
                   return (
                     <View
@@ -210,20 +228,32 @@ export default function SnakeGame() {
           </View>
 
           <View style={styles.controls}>
-            <TouchableOpacity onPress={() => changeDirection("UP")} style={styles.btn}>
+            <TouchableOpacity
+              onPress={() => changeDirection("UP")}
+              style={styles.btn}
+            >
               <Text style={styles.arrow}>⬆️</Text>
             </TouchableOpacity>
 
             <View style={{ flexDirection: "row", gap: 20 }}>
-              <TouchableOpacity onPress={() => changeDirection("LEFT")} style={styles.btn}>
+              <TouchableOpacity
+                onPress={() => changeDirection("LEFT")}
+                style={styles.btn}
+              >
                 <Text style={styles.arrow}>⬅️</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => changeDirection("RIGHT")} style={styles.btn}>
+              <TouchableOpacity
+                onPress={() => changeDirection("RIGHT")}
+                style={styles.btn}
+              >
                 <Text style={styles.arrow}>➡️</Text>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={() => changeDirection("DOWN")} style={styles.btn}>
+            <TouchableOpacity
+              onPress={() => changeDirection("DOWN")}
+              style={styles.btn}
+            >
               <Text style={styles.arrow}>⬇️</Text>
             </TouchableOpacity>
           </View>
@@ -234,11 +264,11 @@ export default function SnakeGame() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    alignItems: "center", 
-    justifyContent: "center", 
-    backgroundColor: "#FAF8F0" 
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FAF8F0",
   },
   center: { alignItems: "center" },
   title: { fontSize: 34, fontWeight: "bold", marginBottom: 6 },
@@ -252,13 +282,13 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     overflow: "hidden",
     borderWidth: 2,
-    borderColor: "#7EC8E3"
+    borderColor: "#7EC8E3",
   },
   cell: {
     width: 30,
     height: 30,
     borderWidth: 0.5,
-    borderColor: "#B0E0E6"
+    borderColor: "#B0E0E6",
   },
   snake: { backgroundColor: "#22c55e" },
   food: { backgroundColor: "#ef4444" },
@@ -271,7 +301,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#7EC8E3"
+    borderColor: "#7EC8E3",
   },
   arrow: { fontSize: 32 },
   button: {
@@ -279,7 +309,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 28,
     paddingHorizontal: 30,
-    borderRadius: 14
+    borderRadius: 14,
   },
-  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" }
-})
+  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" },
+});

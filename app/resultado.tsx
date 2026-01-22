@@ -14,38 +14,41 @@ import PerguntaEmocional from "../components/pergunta";
 const CONFIG_JOGOS = {
   snake: {
     nome: "Jogo da Cobrinha",
-    corTopo: "#DDF2E4",
+    corTopo: "#C6F6D5",
     icone: require("../assets/img/cobrinha.png"),
   },
   memoria: {
     nome: "Jogo da Memória",
-    corTopo: "#FFE4E1",
+    corTopo: "#BEE3F8",
     icone: require("../assets/img/memoria.png"),
   },
   cores: {
     nome: "Jogo das Cores",
-    corTopo: "#E0F4FF",
+    corTopo: "#FEB2B2",
     icone: require("../assets/img/cores.png"),
   },
-  formas: {
+  puzzler: {
     nome: "Jogo Quebra-Cabeça",
-    corTopo: "#FFF9E0",
+    corTopo: "#FBD38D",
     icone: require("../assets/img/quebra.png"),
   },
 };
 
 export default function Resultado() {
-  const { jogoId, niveisConcluidos } = useLocalSearchParams();
+  // Unificado: Pegamos todos os parâmetros de uma vez só
+  const { jogoId, niveisConcluidos, totalDoJogo } = useLocalSearchParams();
+
   const [showModal, setShowModal] = useState(false);
   const [historicoExibir, setHistoricoExibir] = useState<number[]>([]);
 
-  // Identifica qual jogo é. Se não vier nada, assume 'snake' por segurança.
+  // Identifica qual jogo é
   const idAtual = (jogoId as keyof typeof CONFIG_JOGOS) || "snake";
   const config = CONFIG_JOGOS[idAtual];
 
-  const totalNiveis = 4;
+  // Lógica de cálculo dinâmica
+  const total = Number(totalDoJogo) || 4;
   const numConcluidos = Number(niveisConcluidos) || 0;
-  const porcentagemAtual = (numConcluidos / totalNiveis) * 100;
+  const porcentagemAtual = Math.round((numConcluidos / total) * 100);
 
   useEffect(() => {
     const processarHistorico = async () => {
@@ -54,19 +57,21 @@ export default function Resultado() {
         const salvo = await AsyncStorage.getItem(chave);
         let lista = salvo ? JSON.parse(salvo) : [];
 
+        // Adiciona o resultado atual (número de níveis) à lista
         const novaLista = [numConcluidos, ...lista].slice(0, 5);
         await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
 
-        setHistoricoExibir(novaLista.map((n) => (n / totalNiveis) * 100));
+        // Converte a lista salva para porcentagens usando o 'total' do jogo
+        setHistoricoExibir(novaLista.map((n) => Math.round((n / total) * 100)));
       } catch (e) {
         console.log("Erro no storage", e);
       }
     };
 
     processarHistorico();
-    const timer = setTimeout(() => setShowModal(true), 2000);
+    const timer = setTimeout(() => setShowModal(true), 5000);
     return () => clearTimeout(timer);
-  }, [idAtual, niveisConcluidos]);
+  }, [idAtual, niveisConcluidos, total]);
 
   const handleClose = () => {
     setShowModal(false);
@@ -75,7 +80,7 @@ export default function Resultado() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* TOPO DINÂMICO: Muda a cor conforme o jogo */}
+      {/* TOPO DINÂMICO */}
       <View style={[styles.topSection, { backgroundColor: config.corTopo }]}>
         <Image
           source={require("../assets/img/estrela.png")}
@@ -130,11 +135,11 @@ const styles = StyleSheet.create({
   },
   starIcon: {
     position: "absolute",
-    left: 90,
-    width: 95,
-    height: 95,
+    left: 95,
+    bottom: 280,
+    width: 100,
+    height: 100,
     resizeMode: "contain",
-    bottom: 300,
     zIndex: 10,
   },
   circleContainer: { alignItems: "center", justifyContent: "center" },
@@ -152,7 +157,7 @@ const styles = StyleSheet.create({
   percentageText: { fontSize: 44, fontWeight: "bold", color: "#444" },
   brainIcon: {
     position: "absolute",
-    bottom: -40,
+    bottom: -30,
     right: -60,
     width: 130,
     height: 190,
@@ -162,10 +167,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#BDE0FE",
     paddingHorizontal: 30,
     paddingVertical: 10,
-    borderRadius: 20,
-    marginTop: 20,
+    borderRadius: 10,
+    zIndex: 10,
+    bottom: 15,
   },
-  badgeText: { fontSize: 20, fontWeight: "bold", color: "#333" },
+  badgeText: { fontSize: 30, fontWeight: "bold", color: "#333" },
   bottomSection: { flex: 1, paddingHorizontal: 25, paddingTop: 20 },
   scoreCard: { backgroundColor: "#E9F5F9", borderRadius: 25, padding: 10 },
   scoreRow: {

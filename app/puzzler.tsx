@@ -66,14 +66,14 @@ export default function Puzzler() {
      LÓGICA DE DIMENSÃO
   ======================= */
   const totalPieces = LEVELS[level].length;
-  const BOARD_WIDTH = width * 0.95; 
-  
+  const BOARD_WIDTH = width * 0.95;
+
   let cardWidth = 0;
   let cardHeight = 0;
 
   if (totalPieces === 2) {
-    cardWidth = (BOARD_WIDTH - 10) / 2; 
-    cardHeight = cardWidth * 1.5; 
+    cardWidth = (BOARD_WIDTH - 10) / 2;
+    cardHeight = cardWidth * 1.5;
   } else if (totalPieces <= 4) {
     cardWidth = (BOARD_WIDTH - 80) / 2;
     cardHeight = cardWidth;
@@ -116,31 +116,48 @@ export default function Puzzler() {
     if (selected === null) {
       setSelected(index);
       return;
-    }
-    if (selected === index) {
-      setSelected(null);
-      return;
+    } else {
+      setLives((l) => {
+        if (l <= 1) {
+          // DERROTA
+          router.push({
+            pathname: "/resultado",
+            params: {
+              status: "derrota",
+              jogoId: "puzzler",
+              niveisConcluidos: level, // Se perdeu no nível 1 (index 0), concluiu 0. Se no nível 2 (index 1), concluiu 1.
+            },
+          });
+          return 0;
+        }
+        return l - 1;
+      });
     }
 
     const newPieces = [...pieces];
-    [newPieces[selected], newPieces[index]] = [newPieces[index], newPieces[selected]];
+    [newPieces[selected], newPieces[index]] = [
+      newPieces[index],
+      newPieces[selected],
+    ];
     setPieces(newPieces);
     setSelected(null);
 
     if (newPieces.every((img, i) => img === LEVELS[level][i])) {
       if (level === LEVELS.length - 1) {
-        router.push({ pathname: "/resultado", params: { status: "vitoria", mensagem: "Parabéns! 🎉" } });
+        // VITÓRIA TOTAL
+        router.push({
+          pathname: "/resultado",
+          params: {
+            status: "vitoria",
+            jogoId: "puzzler", // ID que definimos na config do resultado
+            niveisConcluidos: 3,
+            totalDoJogo: 3, // Envia 4 para marcar 100%
+          },
+        });
       } else {
         setLevel(level + 1);
         setPhase("intro");
       }
-    } else {
-      setLives((l) => {
-        if (l <= 1) {
-          router.push({ pathname: "/resultado", params: { status: "derrota", mensagem: "Tente de novo 😔" } });
-        }
-        return l - 1;
-      });
     }
   }
 
@@ -163,22 +180,33 @@ export default function Puzzler() {
           <View style={styles.textContainer}>
             {phase === "observe" ? (
               <View style={styles.center}>
-                <Text style={styles.instructionTitle}>Observe com calma 👀</Text>
+                <Text style={styles.instructionTitle}>
+                  Observe com calma 👀
+                </Text>
                 <Text style={styles.infoText}>Memorize: {timer}s</Text>
               </View>
             ) : (
               <View style={styles.center}>
                 <Text style={styles.instructionTitle}>Agora é sua vez!</Text>
-                <Text style={styles.instructionSub}>Toque em uma peça e na outra para trocar</Text>
-                <Text style={styles.livesSmall}>Vidas: {"❤️".repeat(lives)}</Text>
+                <Text style={styles.instructionSub}>
+                  Toque em uma peça e na outra para trocar
+                </Text>
+                <Text style={styles.livesSmall}>
+                  Vidas: {"❤️".repeat(lives)}
+                </Text>
               </View>
             )}
           </View>
 
-          <View style={[
-            styles.board, 
-            { width: BOARD_WIDTH, flexWrap: totalPieces === 2 ? "nowrap" : "wrap" }
-          ]}>
+          <View
+            style={[
+              styles.board,
+              {
+                width: BOARD_WIDTH,
+                flexWrap: totalPieces === 2 ? "nowrap" : "wrap",
+              },
+            ]}
+          >
             {displayPieces.map((img, i) => (
               <TouchableOpacity
                 key={i}
@@ -186,18 +214,18 @@ export default function Puzzler() {
                 disabled={phase === "observe"}
                 style={[
                   styles.card,
-                  { 
-                    width: cardWidth, 
+                  {
+                    width: cardWidth,
                     height: cardHeight,
-                    margin: totalPieces === 2 ? 4 : 8 
+                    margin: totalPieces === 2 ? 4 : 8,
                   },
                   selected === i && styles.selectedCard,
                 ]}
               >
-                <Image 
-                  source={img} 
-                  style={styles.image} 
-                  resizeMode={totalPieces === 2 ? "contain" : "cover"} 
+                <Image
+                  source={img}
+                  style={styles.image}
+                  resizeMode={totalPieces === 2 ? "contain" : "cover"}
                 />
               </TouchableOpacity>
             ))}
@@ -225,13 +253,13 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 26,
-    marginBottom: 10
+    marginBottom: 10,
   },
   textContainer: {
     marginBottom: 20,
     minHeight: 110,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   infoText: {
     fontSize: 20,
@@ -267,7 +295,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
     borderWidth: 1,
-    borderColor: "#7EC8E3"
+    borderColor: "#7EC8E3",
   },
   card: {
     borderRadius: 10,
@@ -283,7 +311,7 @@ const styles = StyleSheet.create({
     borderColor: "#7EC8E3",
   },
   image: {
-    width: "100%", 
+    width: "100%",
     height: "100%",
   },
   button: {
@@ -291,7 +319,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 28,
     paddingHorizontal: 30,
-    borderRadius: 14
+    borderRadius: 14,
   },
-  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" }
+  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" },
 });

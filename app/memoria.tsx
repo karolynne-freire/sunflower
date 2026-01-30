@@ -1,6 +1,17 @@
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ScrollView,
+  Dimensions,
+} from "react-native";
+
+// Pegando a largura da tela para cálculos
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 type CardType = {
   id: number;
@@ -10,44 +21,57 @@ type CardType = {
 };
 
 export default function Memoria() {
-  const [step, setStep] = useState<"intro" | "memorize" | "transition" | "game">("intro");
+  const [step, setStep] = useState<
+    "intro" | "memorize" | "transition" | "game"
+  >("intro");
   const [level, setLevel] = useState(1);
   const [cards, setCards] = useState<CardType[]>([]);
-  const [memorizeTime, setMemorizeTime] = useState(5);
+  const [memorizeTime, setMemorizeTime] = useState(6);
   const [selected, setSelected] = useState<number[]>([]);
   const [errors, setErrors] = useState(0);
 
-  const maxLevel = 4;
+  const TOTAL_LEVELS = 8;
 
-  const imageLevels = [
-    [require("../assets/img/cobrinha.png"), require("../assets/img/cores.png")],
-    [require("../assets/img/cobrinha.png"), require("../assets/img/cores.png"), require("../assets/img/memoria.png")],
-    [require("../assets/img/cobrinha.png"), require("../assets/img/cores.png"), require("../assets/img/memoria.png"), require("../assets/img/quebra.png")],
-    [require("../assets/img/cobrinha.png"), require("../assets/img/cores.png"), require("../assets/img/memoria.png"), require("../assets/img/quebra.png"), require("../assets/img/pergunta.png")]
+  const allImages = [
+    require("../assets/img/cobrinha.png"),
+    require("../assets/img/cores.png"),
+    require("../assets/img/memoria.png"),
+    require("../assets/img/quebra.png"),
+    require("../assets/img/pergunta.png"),
+    require("../assets/img/bravo.png"),
+    require("../assets/img/estrela.png"),
+    require("../assets/img/feliz.png"),
+    require("../assets/img/triste.png"),
   ];
 
+  /* ⏱️ TEMPO PROGRESSIVO: Agora aumenta conforme o nível */
+  const memorizeByLevel = [5, 6, 7, 8, 10, 11, 12, 13];
+
+  /* 📐 TAMANHO DAS CARTAS OTIMIZADO */
   function getCardSize() {
-    if (level === 1) return 150;
-    if (level === 2) return 130;
-    if (level === 3) return 115;
-    return 100;
+    if (level <= 2) return SCREEN_WIDTH * 0.42; // 2 por linha
+    if (level <= 4) return SCREEN_WIDTH * 0.3; // 3 por linha
+    return SCREEN_WIDTH * 0.28; // 4 por linha nas fases finais
   }
 
   const cardSize = getCardSize();
 
   function createCards() {
-    const imgs = imageLevels[level - 1];
+    const pairs = level + 1;
+    const imgs = allImages.slice(0, pairs);
+
     const duplicated = [...imgs, ...imgs]
       .map((img, index) => ({
         id: index,
         img,
         flipped: step === "memorize",
-        matched: false
+        matched: false,
       }))
       .sort(() => Math.random() - 0.5);
 
     setCards(duplicated);
     setErrors(0);
+    setSelected([]);
   }
 
   useEffect(() => {
@@ -56,30 +80,33 @@ export default function Memoria() {
 
   useEffect(() => {
     if (step === "memorize") {
-      setMemorizeTime(5);
+      setMemorizeTime(memorizeByLevel[level - 1]);
+
       const timer = setInterval(() => {
-        setMemorizeTime(old => {
-          if (old === 1) {
+        setMemorizeTime((old) => {
+          if (old <= 1) {
             clearInterval(timer);
             setStep("transition");
             setTimeout(() => {
-              const hidden = cards.map(c => ({ ...c, flipped: false }));
-              setCards(hidden);
+              setCards((prev) => prev.map((c) => ({ ...c, flipped: false })));
               setStep("game");
             }, 900);
+            return 0;
           }
           return old - 1;
         });
       }, 1000);
+
       return () => clearInterval(timer);
     }
   }, [step]);
 
   function handleCardPress(id: number) {
     if (step !== "game") return;
+    if (selected.length >= 2) return; // Evita clicar em 3 cartas rápido demais
 
-    const updated = cards.map(c =>
-      c.id === id && !c.flipped && !c.matched ? { ...c, flipped: true } : c
+    const updated = cards.map((c) =>
+      c.id === id && !c.flipped && !c.matched ? { ...c, flipped: true } : c,
     );
 
     setCards(updated);
@@ -88,49 +115,46 @@ export default function Memoria() {
 
     if (newSelected.length === 2) {
       const [a, b] = newSelected;
-      const cardA = updated.find(c => c.id === a);
-      const cardB = updated.find(c => c.id === b);
+      const cardA = updated.find((c) => c.id === a);
+      const cardB = updated.find((c) => c.id === b);
 
       if (cardA?.img === cardB?.img) {
-        const matchedCards = updated.map(c =>
-          c.img === cardA?.img ? { ...c, matched: true } : c
+        const matchedCards = updated.map((c) =>
+          c.img === cardA?.img ? { ...c, matched: true } : c,
         );
         setCards(matchedCards);
 
-        const finished = matchedCards.every(c => c.matched);
-        if (finished) {
+        if (matchedCards.every((c) => c.matched)) {
           setTimeout(() => {
-            if (level === maxLevel) {
-              // CONECTADO: Vitória total (100%)
+            if (level === TOTAL_LEVELS) {
               router.push({
                 pathname: "/resultado",
                 params: {
                   status: "vitoria",
                   jogoId: "memoria",
-                  niveisConcluidos: 4,
-                  totalDoJogo: 4
-                }
+                  niveisConcluidos: TOTAL_LEVELS,
+                  totalDoJogo: TOTAL_LEVELS,
+                },
               });
             } else {
-              setLevel(level + 1);
+              setLevel((prev) => prev + 1);
               setStep("intro");
             }
           }, 800);
         }
       } else {
-        setErrors(prev => {
+        setErrors((prev) => {
           const updatedErrors = prev + 1;
           if (updatedErrors >= 3) {
             setTimeout(() => {
-              // CONECTADO: Derrota (Envia o nível que a criança parou)
               router.push({
                 pathname: "/resultado",
                 params: {
                   status: "derrota",
                   jogoId: "memoria",
                   niveisConcluidos: level - 1,
-                  totalDoJogo: 4
-                }
+                  totalDoJogo: TOTAL_LEVELS,
+                },
               });
             }, 600);
           }
@@ -138,93 +162,155 @@ export default function Memoria() {
         });
 
         setTimeout(() => {
-          const reverted = updated.map(c =>
-            c.id === a || c.id === b ? { ...c, flipped: false } : c
+          setCards((prev) =>
+            prev.map((c) =>
+              c.id === a || c.id === b ? { ...c, flipped: false } : c,
+            ),
           );
-          setCards(reverted);
         }, 900);
       }
-      setSelected([]);
+      setTimeout(() => setSelected([]), 900);
     }
   }
 
   return (
     <View style={styles.container}>
-      {step === "intro" && (
-        <View style={styles.centerBox}>
-          <Text style={styles.levelText}>Fase {level}</Text>
-          <Text style={styles.simpleMessage}>Vamos jogar?</Text>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              createCards();
-              setStep("memorize");
-            }}>
-            <Text style={styles.buttonText}>Começar</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {step === "memorize" && (
-        <View style={styles.centerBox}>
-          <Text style={styles.simpleMessage}>Observe com calma 👀</Text>
-          <Text style={styles.timerText}>{memorizeTime}s</Text>
-          <View style={styles.grid}>
-            {cards.map(card => (
-              <View key={card.id} style={[styles.cardOpen,{ width: cardSize, height: cardSize }]}>
-                <Image source={card.img} style={{ width: cardSize * 0.7, height: cardSize * 0.7 }} />
-              </View>
-            ))}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {step === "intro" && (
+          <View style={styles.centerBox}>
+            <Text style={styles.levelText}>Fase {level}</Text>
+            <Text style={styles.simpleMessage}>Vamos jogar?</Text>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setStep("memorize")}
+            >
+              <Text style={styles.buttonText}>Começar</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-      )}
+        )}
 
-      {step === "transition" && (
-        <View style={styles.centerBox}>
-          <Text style={styles.simpleMessage}>Agora é sua vez! 😄</Text> 
-          <Text style={styles.simpleMessage}>As cartas estão virando…</Text>
-        </View>
-      )}
-
-      {step === "game" && (
-        <View style={styles.centerBox}>
-          <Text style={styles.simpleMessage}>Encontre os pares ⭐</Text>
-          <Text style={styles.errorText}>Erros: {errors} / 3</Text>
-          <View style={styles.grid}>
-            {cards.map(card => (
-              <TouchableOpacity
-                key={card.id}
-                onPress={() => handleCardPress(card.id)}
-                activeOpacity={0.8}
-                style={[
-                  card.flipped || card.matched ? styles.cardOpen : styles.cardClosed,
-                  { width: cardSize, height: cardSize }
-                ]}>
-                {card.flipped || card.matched ? (
-                  <Image source={card.img} style={{ width: cardSize * 0.7, height: cardSize * 0.7 }} />
-                ) : (
-                  <Text style={styles.question}>?</Text>
-                )}
-              </TouchableOpacity>
-            ))}
+        {step === "memorize" && (
+          <View style={styles.centerBox}>
+            <Text style={styles.simpleMessage}>Observe com calma 👀</Text>
+            <Text style={styles.timerText}>{memorizeTime}s</Text>
+            <View style={styles.grid}>
+              {cards.map((card) => (
+                <View
+                  key={card.id}
+                  style={[
+                    styles.cardOpen,
+                    { width: cardSize, height: cardSize },
+                  ]}
+                >
+                  <Image
+                    source={card.img}
+                    style={{ width: cardSize * 0.8, height: cardSize * 0.8 }}
+                    resizeMode="contain"
+                  />
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
-      )}
+        )}
+
+        {step === "transition" && (
+          <View style={styles.centerBox}>
+            <Text style={styles.simpleMessage}>Agora é sua vez! 😄</Text>
+            <Text style={styles.simpleMessage}>As cartas estão virando…</Text>
+          </View>
+        )}
+
+        {step === "game" && (
+          <View style={styles.centerBox}>
+            <Text style={styles.simpleMessage}>Encontre os pares ⭐</Text>
+            <Text style={styles.errorText}>Erros: {errors} / 3</Text>
+            <View style={styles.grid}>
+              {cards.map((card) => (
+                <TouchableOpacity
+                  key={card.id}
+                  onPress={() => handleCardPress(card.id)}
+                  activeOpacity={0.8}
+                  style={[
+                    card.flipped || card.matched
+                      ? styles.cardOpen
+                      : styles.cardClosed,
+                    { width: cardSize, height: cardSize },
+                  ]}
+                >
+                  {card.flipped || card.matched ? (
+                    <Image
+                      source={card.img}
+                      style={{ width: cardSize * 0.8, height: cardSize * 0.8 }}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <Text
+                      style={[styles.question, { fontSize: cardSize * 0.4 }]}
+                    >
+                      ?
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor:"#FAF8F0", alignItems:"center", justifyContent:"center" },
-  centerBox:{ width:"95%", alignItems:"center" },
-  levelText:{ fontSize:34, fontWeight:"bold", marginBottom:6 },
-  simpleMessage:{ fontSize:26, marginBottom:10 },
-  timerText:{ fontSize:30, fontWeight:"bold", marginBottom:12 },
-  errorText:{ fontSize:22, marginBottom:10 },
-  button:{ backgroundColor:"#AEE1F9", marginTop:20, paddingVertical:28, paddingHorizontal:30, borderRadius:14 },
-  buttonText:{ color:"#333", fontSize:22, fontWeight:"bold" },
-  grid:{ width:"100%", flexDirection:"row", flexWrap:"wrap", justifyContent:"center" },
-  cardOpen:{ margin:8, backgroundColor:"#AEE1F9", borderRadius:18, alignItems:"center", justifyContent:"center", borderWidth:2, borderColor:"#7EC8E3" },
-  cardClosed:{ margin:8, backgroundColor:"#BDBDBD", borderRadius:18, alignItems:"center", justifyContent:"center" },
-  question:{ fontSize:42, fontWeight:"bold" }
+  container: { flex: 1, backgroundColor: "#FAF8F0" },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  centerBox: { width: "100%", alignItems: "center", paddingHorizontal: 10 },
+  levelText: { fontSize: 34, fontWeight: "bold", marginBottom: 6 },
+  simpleMessage: { fontSize: 24, marginBottom: 10, textAlign: "center" },
+  timerText: {
+    fontSize: 30,
+    fontWeight: "bold",
+    marginBottom: 12,
+    color: "#333",
+  },
+  errorText: { fontSize: 22, marginBottom: 10, color: "#333" },
+  button: {
+    backgroundColor: "#AEE1F9",
+    marginTop: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 14,
+  },
+  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    width: "100%",
+    paddingHorizontal: 5, // Pequena folga nas laterais
+  },
+  cardOpen: {
+    margin: 5,
+    backgroundColor: "#AEE1F9",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#7EC8E3",
+  },
+  cardClosed: {
+    margin: 5,
+    backgroundColor: "#BDBDBD",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  question: { fontWeight: "bold", color: "#FFF" },
 });

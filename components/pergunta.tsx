@@ -22,6 +22,7 @@ export default function Pergunta({ visible, onClose }: PerguntaProps) {
     const verificarEtapa = async () => {
       const salvas = await AsyncStorage.getItem("@respostas_contagem");
       const lista = salvas ? JSON.parse(salvas) : [];
+      // Se já respondeu 3, volta pro zero (reset), senão continua de onde parou
       setEtapa(lista.length < 3 ? lista.length : 0);
     };
     if (visible) verificarEtapa();
@@ -32,6 +33,7 @@ export default function Pergunta({ visible, onClose }: PerguntaProps) {
       const salvas = await AsyncStorage.getItem("@respostas_contagem");
       let lista = salvas ? JSON.parse(salvas) : [];
       
+      // Adiciona a nova resposta
       lista.push({ 
         emocao: perguntasProfessor[etapa].emocao, 
         confirmou: answer === "sim" 
@@ -39,22 +41,18 @@ export default function Pergunta({ visible, onClose }: PerguntaProps) {
       
       await AsyncStorage.setItem("@respostas_contagem", JSON.stringify(lista));
 
-      // Atualiza a barra de energia (33% por pergunta)
+      // Atualiza a barra de energia (gotinhas)
       const novaEnergia = Math.min((lista.length * 33.4), 100);
       await AsyncStorage.setItem("@energia_sunny", Math.round(novaEnergia).toString());
 
-      // Lógica de Contexto
+      // Se respondeu as 3 perguntas, avisa o Contexto para entrar em modo "Calculando"
       if (lista.length >= 3) {
-        const confirmadas = lista.filter((r: any) => r.confirmou);
-        const final = confirmadas.length > 0 ? confirmadas[confirmadas.length - 1].emocao : "calmo";
-        setHumor(final as Humor);
-      } else {
         setHumor("calculando");
       }
 
-      onClose();
+      onClose(); // Fecha o modal e volta para a Home
     } catch (e) {
-      console.log("Erro ao processar resposta:", e);
+      console.log("Erro ao salvar resposta:", e);
     }
   };
 
@@ -77,6 +75,8 @@ export default function Pergunta({ visible, onClose }: PerguntaProps) {
     </Modal>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   modalBackground: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },

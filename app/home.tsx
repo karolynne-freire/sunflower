@@ -3,14 +3,15 @@ import React, { useEffect, useState, useRef } from "react";
 import { Image, StyleSheet, Text, View, Animated } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Button from "../components/button";
-import { useHumor } from "./context/HumorContext";
+import { useHumor, Humor } from "./context/HumorContext"; // Ajuste o caminho se necessário
 
 export default function Home() {
   const { name } = useLocalSearchParams();
-  const { humor } = useHumor();
+  const { humor, setHumor } = useHumor(); 
   const [progresso, setProgresso] = useState(0);
   const larguraAnimada = useRef(new Animated.Value(0)).current;
 
+  // EFEITO 1: Carrega a barra de energia (gotinhas)
   useEffect(() => {
     const carregarDados = async () => {
       const valor = await AsyncStorage.getItem("@energia_sunny");
@@ -26,19 +27,52 @@ export default function Home() {
     carregarDados();
   }, [humor]);
 
+  // EFEITO 2: Lógica de Suspense quando estiver em "calculando"
+  useEffect(() => {
+    if (humor === "calculando") {
+      const calcularResultado = async () => {
+        const salvas = await AsyncStorage.getItem("@respostas_contagem");
+        const lista = salvas ? JSON.parse(salvas) : [];
+
+        // Lógica de decisão do humor
+        const confirmadas = lista.filter((r: any) => r.confirmou);
+        const resultadoFinal = confirmadas.length > 0 
+          ? confirmadas[confirmadas.length - 1].emocao 
+          : "calmo";
+
+        // Delay de suspense de 2.5 segundos
+        setTimeout(() => {
+          setHumor(resultadoFinal as Humor);
+        }, 2500);
+      };
+
+      calcularResultado();
+    }
+  }, [humor]);
+
+  // INTERPOLAÇÃO (Correção do erro de ReferenceError)
   const widthInterpolation = larguraAnimada.interpolate({
     inputRange: [0, 100],
     outputRange: ["0%", "100%"],
   });
 
   const getEmotionData = () => {
+    if (humor === "inicio") {
+      return {
+        avatar: require("../assets/img/perfil-feliz.png"),
+        image: require("../assets/img/sunny-ideia.png"),
+        text: `Olá! Seja bem-vindo(a)! Vamos jogar e descobrir como seu girassol está hoje?`,
+      };
+    }
+
     if (humor === "calculando") {
       return {
         avatar: require("../assets/img/perfil-feliz.png"),
         image: require("../assets/img/sunny-ideia.png"),
-        text: "Hmmm... estou fazendo minhas contas ainda! Vamos jogar mais uma?",
+        text: "Hmmm... estou fazendo minhas continhas aqui! Só um segundinho...",
       };
     }
+
     switch (humor) {
       case "feliz": return { avatar: require("../assets/img/perfil-feliz.png"), image: require("../assets/img/feliz.png"), text: "Seu girassol está feliz, assim como você!" };
       case "triste": return { avatar: require("../assets/img/perfil-triste.png"), image: require("../assets/img/triste.png"), text: "Seu girassol está triste, talvez precise de carinho." };
@@ -78,10 +112,15 @@ export default function Home() {
       </View>
 
       <View style={styles.buttonContainer}>
-        <Button title="Jogar" backgroundColor="#A8E6CF" onPress={() => router.push("/jogos")} />
-        <Button title="Reiniciar" backgroundColor="#CDECF5" onPress={() => {
+        <Button 
+          title="Jogar" 
+          backgroundColor="#A8E6CF" 
+          onPress={() => router.push("/jogos")} 
+        />
+        <Button title="Sair" onPress={() => {
            AsyncStorage.multiRemove(["@respostas_contagem", "@energia_sunny"]);
            setProgresso(0);
+           setHumor("inicio");
            router.replace("/");
         }} />
       </View>
@@ -103,8 +142,8 @@ const styles = StyleSheet.create({
   regadorPorcentagem: { fontSize: 25, fontWeight: "bold", color: "#4FC3F7" },
   barraFundo: { width: "100%", height: 18, backgroundColor: "#E0E0E0", borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: "#B3E5FC" },
   barraAgua: { height: "100%", backgroundColor: "#4FC3F7" },
-  emotionBox: { backgroundColor: "#FBD38D", borderRadius: 20, width: "95%", padding: 20, alignItems: "center", marginBottom: 30 },
-  emotionText: { fontSize: 24, color: "#333", textAlign: "center", marginBottom: 15, fontWeight: "500" },
+  emotionBox: { backgroundColor: "#FBD38D", borderRadius: 20, width: "95%", padding: 20, alignItems: "center", marginBottom: 15 },
+  emotionText: { fontSize: 30, color: "#333", textAlign: "center", marginBottom: 15, fontWeight: "500" },
   emotionImage: { width: 200, height: 200 },
-  buttonContainer: { width: "80%", gap: 15 }
+  buttonContainer: { width: "80%", gap: 10 }
 });

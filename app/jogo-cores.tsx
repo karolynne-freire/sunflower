@@ -8,7 +8,6 @@ import {
   View,
 } from "react-native";
 
-/* 🎨 CORES DO JOGO */
 const COLORS = [
   { id: "vermelho", color: "#FEB2B2" },
   { id: "amarelo", color: "#FFF5A1" },
@@ -16,7 +15,6 @@ const COLORS = [
   { id: "azul", color: "#BEE3F8" },
 ];
 
-/* 🧩 FASES (8 fases acessíveis) */
 const PHASES = [3, 4, 5, 5, 6, 6, 7, 8];
 const TOTAL_PHASES = PHASES.length;
 
@@ -29,16 +27,13 @@ export default function JogoCores() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [phase, setPhase] = useState<"intro" | "memorize" | "play">("intro");
 
-  /* 🏷️ Nome da fase */
   const getGamePhaseName = () => `Fase ${phaseIndex + 1}`;
 
-  /* ▶️ Iniciar fase */
   function startGame() {
     generateSequence();
     setPhase("memorize");
   }
 
-  /* 🎲 Gera sequência + tempo acessível */
   const generateSequence = () => {
     const length = PHASES[phaseIndex];
     const seq: string[] = [];
@@ -52,11 +47,9 @@ export default function JogoCores() {
     setUserAnswer([]);
     setShowSequence(true);
 
-    // ⏱️ tempo acessível: 2s por cor + 2s base
     setTimeLeft(length * 2 + 2);
   };
 
-  /* ⏱️ Contador durante memorização */
   useEffect(() => {
     if (phase === "memorize") {
       const timer = setInterval(() => {
@@ -75,14 +68,12 @@ export default function JogoCores() {
     }
   }, [phase]);
 
-  /* 🔄 Sempre que muda de fase */
   useEffect(() => {
     if (phase !== "intro") {
       generateSequence();
     }
   }, [phaseIndex]);
 
-  /* 🎯 Clique do jogador */
   const handleSelect = (id: string) => {
     if (showSequence || lives <= 0 || phase !== "play") return;
 
@@ -90,12 +81,9 @@ export default function JogoCores() {
     setUserAnswer(updatedUserAnswer);
 
     if (updatedUserAnswer.length === sequence.length) {
-      const isCorrect = updatedUserAnswer.every(
-        (v, i) => v === sequence[i]
-      );
+      const isCorrect = updatedUserAnswer.every((v, i) => v === sequence[i]);
 
       if (isCorrect) {
-        // 🎉 Vitória final
         if (phaseIndex === TOTAL_PHASES - 1) {
           router.push({
             pathname: "/resultado",
@@ -109,7 +97,6 @@ export default function JogoCores() {
           return;
         }
 
-        // Próxima fase
         setTimeout(() => {
           setPhaseIndex((prev) => prev + 1);
           setPhase("intro");
@@ -119,7 +106,6 @@ export default function JogoCores() {
         setLives(newLives);
 
         if (newLives <= 0) {
-          // 💔 Derrota
           router.push({
             pathname: "/resultado",
             params: {
@@ -130,7 +116,6 @@ export default function JogoCores() {
             },
           });
         } else {
-          // Tenta novamente
           setTimeout(() => {
             generateSequence();
             setPhase("memorize");
@@ -140,10 +125,8 @@ export default function JogoCores() {
     }
   };
 
-  /* 📐 Layout responsivo */
   const screenWidth = Dimensions.get("window").width;
-  const boxSize =
-    sequence.length <= 4 ? screenWidth * 0.24 : screenWidth * 0.2;
+  const boxSize = sequence.length <= 4 ? screenWidth * 0.24 : screenWidth * 0.2;
 
   return (
     <View style={styles.container}>
@@ -218,9 +201,7 @@ export default function JogoCores() {
                 onPress={() => handleSelect(c.id)}
                 disabled={userAnswer.length >= sequence.length}
               >
-                <Text style={styles.buttonLabel}>
-                  {c.id.toUpperCase()}
-                </Text>
+                <Text style={styles.buttonLabel}>{c.id.toUpperCase()}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -234,7 +215,6 @@ export default function JogoCores() {
   );
 }
 
-/* 🎨 ESTILOS */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -242,11 +222,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  center: { width: "95%", alignItems: "center" },
-  phaseText: { fontSize: 34, fontWeight: "bold", marginBottom: 6 },
-  title: { fontSize: 26, marginBottom: 10 },
-  subtitle: { fontSize: 22, marginBottom: 14 },
-  timer: { fontSize: 30, fontWeight: "bold", marginBottom: 18 },
+  center: {
+    width: "95%",
+    alignItems: "center",
+  },
+  phaseText: {
+    fontSize: 34,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
+  title: {
+    fontSize: 26,
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 22,
+    marginBottom: 14,
+  },
+  timer: {
+    fontSize: 30,
+    fontWeight: "bold",
+    marginBottom: 18,
+  },
   lives: {
     fontSize: 22,
     marginTop: 30,

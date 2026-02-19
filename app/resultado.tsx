@@ -35,17 +35,14 @@ const CONFIG_JOGOS = {
 };
 
 export default function Resultado() {
-  // Unificado: Pegamos todos os parâmetros de uma vez só
   const { jogoId, niveisConcluidos, totalDoJogo } = useLocalSearchParams();
 
   const [showModal, setShowModal] = useState(false);
   const [historicoExibir, setHistoricoExibir] = useState<number[]>([]);
 
-  // Identifica qual jogo é
   const idAtual = (jogoId as keyof typeof CONFIG_JOGOS) || "snake";
   const config = CONFIG_JOGOS[idAtual];
 
-  // Lógica de cálculo dinâmica
   const total = Number(totalDoJogo) || 4;
   const numConcluidos = Number(niveisConcluidos) || 0;
   const porcentagemAtual = Math.round((numConcluidos / total) * 100);
@@ -57,11 +54,9 @@ export default function Resultado() {
         const salvo = await AsyncStorage.getItem(chave);
         let lista = salvo ? JSON.parse(salvo) : [];
 
-        // Adiciona o resultado atual (número de níveis) à lista
         const novaLista = [numConcluidos, ...lista].slice(0, 5);
         await AsyncStorage.setItem(chave, JSON.stringify(novaLista));
 
-        // Converte a lista salva para porcentagens usando o 'total' do jogo
         setHistoricoExibir(novaLista.map((n) => Math.round((n / total) * 100)));
       } catch (e) {
         console.log("Erro no storage", e);
@@ -80,7 +75,6 @@ export default function Resultado() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* TOPO DINÂMICO */}
       <View style={[styles.topSection, { backgroundColor: config.corTopo }]}>
         <Image
           source={require("../assets/img/estrela.png")}

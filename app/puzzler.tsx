@@ -12,9 +12,6 @@ import {
 
 const { width } = Dimensions.get("window");
 
-/* =======================
-   IMAGENS POR NÍVEL
-======================= */
 const level1 = [
   require("../assets/img/puzzle/primeiro/cores1.png"),
   require("../assets/img/puzzle/primeiro/cores2.png"),
@@ -49,11 +46,7 @@ export default function Puzzler() {
   const [lives, setLives] = useState(3);
   const [timer, setTimer] = useState(4);
 
-  /* =======================
-     LÓGICA DE INÍCIO DE FASE
-  ======================= */
   const startPhase = () => {
-    // Definir vidas baseado no nível: Nível 3 (índice 2) ganha 5 vidas
     if (level === 2) {
       setLives(5);
     } else {
@@ -62,9 +55,6 @@ export default function Puzzler() {
     setPhase("observe");
   };
 
-  /* =======================
-     LÓGICA DE DIMENSÃO
-  ======================= */
   const totalPieces = LEVELS[level].length;
   const BOARD_WIDTH = width * 0.95;
 
@@ -119,13 +109,12 @@ export default function Puzzler() {
     } else {
       setLives((l) => {
         if (l <= 1) {
-          // DERROTA
           router.push({
             pathname: "/resultado",
             params: {
               status: "derrota",
               jogoId: "puzzler",
-              niveisConcluidos: level, // Se perdeu no nível 1 (index 0), concluiu 0. Se no nível 2 (index 1), concluiu 1.
+              niveisConcluidos: level,
             },
           });
           return 0;
@@ -144,14 +133,13 @@ export default function Puzzler() {
 
     if (newPieces.every((img, i) => img === LEVELS[level][i])) {
       if (level === LEVELS.length - 1) {
-        // VITÓRIA TOTAL
         router.push({
           pathname: "/resultado",
           params: {
             status: "vitoria",
-            jogoId: "puzzler", // ID que definimos na config do resultado
+            jogoId: "puzzler",
             niveisConcluidos: 3,
-            totalDoJogo: 3, // Envia 4 para marcar 100%
+            totalDoJogo: 3,
           },
         });
       } else {

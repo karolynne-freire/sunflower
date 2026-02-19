@@ -4,16 +4,15 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 const GRID_SIZE = 10;
 
-/* 🧩 8 FASES – progressão acessível */
 const LEVELS = [
-  { speed: 520, apples: 0 },   // Fase 1
-  { speed: 460, apples: 3 },   // Fase 2
-  { speed: 420, apples: 7 },   // Fase 3
-  { speed: 380, apples: 12 },  // Fase 4
-  { speed: 350, apples: 18 },  // Fase 5
-  { speed: 320, apples: 25 },  // Fase 6
-  { speed: 300, apples: 33 },  // Fase 7
-  { speed: 280, apples: 42 },  // Fase 8 (final)
+  { speed: 520, apples: 0 },
+  { speed: 460, apples: 3 },
+  { speed: 420, apples: 7 },
+  { speed: 380, apples: 12 },
+  { speed: 350, apples: 18 },
+  { speed: 320, apples: 25 },
+  { speed: 300, apples: 33 },
+  { speed: 280, apples: 42 },
 ];
 
 const TOTAL_LEVELS = LEVELS.length;
@@ -37,9 +36,15 @@ export default function SnakeGame() {
 
   const gameLoop = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => { snakeRef.current = snake; }, [snake]);
-  useEffect(() => { foodRef.current = food; }, [food]);
-  useEffect(() => { levelRef.current = level; }, [level]);
+  useEffect(() => {
+    snakeRef.current = snake;
+  }, [snake]);
+  useEffect(() => {
+    foodRef.current = food;
+  }, [food]);
+  useEffect(() => {
+    levelRef.current = level;
+  }, [level]);
 
   function startGame() {
     setSnake([{ x: 5, y: 5 }]);
@@ -78,7 +83,6 @@ export default function SnakeGame() {
     if (dir === "LEFT") head.x--;
     if (dir === "RIGHT") head.x++;
 
-    // 💥 colisão
     if (
       head.x < 0 ||
       head.x >= GRID_SIZE ||
@@ -92,7 +96,6 @@ export default function SnakeGame() {
 
     const newSnake = [head, ...snakeRef.current];
 
-    // 🍎 comeu maçã
     if (head.x === foodRef.current.x && head.y === foodRef.current.y) {
       const newApples = applesRef.current + 1;
       applesRef.current = newApples;
@@ -101,7 +104,6 @@ export default function SnakeGame() {
       const currentLevel = LEVELS[levelRef.current];
       const nextLevel = LEVELS[levelRef.current + 1];
 
-      // 🏆 vitória final (fase 8)
       if (!nextLevel && newApples >= currentLevel.apples) {
         stopLoop();
         router.push({
@@ -115,7 +117,6 @@ export default function SnakeGame() {
         return;
       }
 
-      // ⬆️ passa de fase
       if (nextLevel && newApples >= nextLevel.apples) {
         stopLoop();
         setLevel((prev) => prev + 1);
@@ -221,20 +222,32 @@ export default function SnakeGame() {
           </View>
 
           <View style={styles.controls}>
-            <TouchableOpacity onPress={() => changeDirection("UP")} style={styles.btn}>
+            <TouchableOpacity
+              onPress={() => changeDirection("UP")}
+              style={styles.btn}
+            >
               <Text style={styles.arrow}>⬆️</Text>
             </TouchableOpacity>
 
             <View style={{ flexDirection: "row", gap: 20 }}>
-              <TouchableOpacity onPress={() => changeDirection("LEFT")} style={styles.btn}>
+              <TouchableOpacity
+                onPress={() => changeDirection("LEFT")}
+                style={styles.btn}
+              >
                 <Text style={styles.arrow}>⬅️</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => changeDirection("RIGHT")} style={styles.btn}>
+              <TouchableOpacity
+                onPress={() => changeDirection("RIGHT")}
+                style={styles.btn}
+              >
                 <Text style={styles.arrow}>➡️</Text>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={() => changeDirection("DOWN")} style={styles.btn}>
+            <TouchableOpacity
+              onPress={() => changeDirection("DOWN")}
+              style={styles.btn}
+            >
               <Text style={styles.arrow}>⬇️</Text>
             </TouchableOpacity>
           </View>
@@ -245,12 +258,32 @@ export default function SnakeGame() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#FAF8F0" },
-  center: { alignItems: "center" },
-  title: { fontSize: 34, fontWeight: "bold", marginBottom: 6 },
-  text: { fontSize: 26 },
-  simpleMessage: { fontSize: 26, marginBottom: 10 },
-  info: { fontSize: 18, marginBottom: 10, fontWeight: "bold" },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FAF8F0",
+  },
+  center: {
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 34,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
+  text: {
+    fontSize: 26,
+  },
+  simpleMessage: {
+    fontSize: 26,
+    marginBottom: 10,
+  },
+  info: {
+    fontSize: 18,
+    marginBottom: 10,
+    fontWeight: "bold",
+  },
   board: {
     width: 300,
     height: 300,
@@ -260,10 +293,23 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#7EC8E3",
   },
-  cell: { width: 30, height: 30, borderWidth: 0.5, borderColor: "#B0E0E6" },
-  snake: { backgroundColor: "#22c55e" },
-  food: { backgroundColor: "#ef4444" },
-  controls: { marginTop: 20, alignItems: "center", gap: 10 },
+  cell: {
+    width: 30,
+    height: 30,
+    borderWidth: 0.5,
+    borderColor: "#B0E0E6",
+  },
+  snake: {
+    backgroundColor: "#22c55e",
+  },
+  food: {
+    backgroundColor: "#ef4444",
+  },
+  controls: {
+    marginTop: 20,
+    alignItems: "center",
+    gap: 10,
+  },
   btn: {
     backgroundColor: "#AEE1F9",
     width: 80,
@@ -274,7 +320,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#7EC8E3",
   },
-  arrow: { fontSize: 32 },
+  arrow: {
+    fontSize: 32,
+  },
   button: {
     backgroundColor: "#AEE1F9",
     marginTop: 20,
@@ -282,6 +330,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 14,
   },
-  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" },
+  buttonText: {
+    color: "#333",
+    fontSize: 22,
+    fontWeight: "bold",
+  },
 });
-

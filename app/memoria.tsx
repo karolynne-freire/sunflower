@@ -1,13 +1,13 @@
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Dimensions,
   Image,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
-  Dimensions,
 } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -20,7 +20,9 @@ type CardType = {
 };
 
 export default function Memoria() {
-  const [step, setStep] = useState<"intro" | "memorize" | "transition" | "game">("intro");
+  const [step, setStep] = useState<
+    "intro" | "memorize" | "transition" | "game"
+  >("intro");
   const [level, setLevel] = useState(1);
   const [cards, setCards] = useState<CardType[]>([]);
   const [memorizeTime, setMemorizeTime] = useState(6);
@@ -44,9 +46,9 @@ export default function Memoria() {
   const memorizeByLevel = [5, 6, 7, 8, 10, 11, 12, 13];
 
   function getCardSize() {
-    if (level <= 2) return SCREEN_WIDTH * 0.42; 
-    if (level <= 4) return SCREEN_WIDTH * 0.3; 
-    return SCREEN_WIDTH * 0.28; 
+    if (level <= 2) return SCREEN_WIDTH * 0.42;
+    if (level <= 4) return SCREEN_WIDTH * 0.3;
+    return SCREEN_WIDTH * 0.28;
   }
 
   const cardSize = getCardSize();
@@ -85,7 +87,7 @@ export default function Memoria() {
             setTimeout(() => {
               setCards((prev) => prev.map((c) => ({ ...c, flipped: false })));
               setStep("game");
-            }, 1200); // Tempo para ler a frase "As cartas estão virando"
+            }, 1200);
             return 0;
           }
           return old - 1;
@@ -142,7 +144,6 @@ export default function Memoria() {
         setErrors((prev) => {
           const updatedErrors = prev + 1;
           if (updatedErrors >= 3) {
-            // AUMENTADO: Espera 1.5s antes de ir para a tela de derrota
             setTimeout(() => {
               router.push({
                 pathname: "/resultado",
@@ -158,7 +159,6 @@ export default function Memoria() {
           return updatedErrors;
         });
 
-        // Tempo maior para as cartas ficarem expostas no erro (ajuda na memorização)
         setTimeout(() => {
           setCards((prev) =>
             prev.map((c) =>
@@ -173,12 +173,18 @@ export default function Memoria() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {step === "intro" && (
           <View style={styles.centerBox}>
             <Text style={styles.levelText}>Fase {level}</Text>
             <Text style={styles.simpleMessage}>Vamos jogar?</Text>
-            <TouchableOpacity style={styles.button} onPress={() => setStep("memorize")}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setStep("memorize")}
+            >
               <Text style={styles.buttonText}>Começar</Text>
             </TouchableOpacity>
           </View>
@@ -190,8 +196,18 @@ export default function Memoria() {
             <Text style={styles.timerText}>{memorizeTime}s</Text>
             <View style={styles.grid}>
               {cards.map((card) => (
-                <View key={card.id} style={[styles.cardOpen, { width: cardSize, height: cardSize }]}>
-                  <Image source={card.img} style={{ width: cardSize * 0.8, height: cardSize * 0.8 }} resizeMode="contain" />
+                <View
+                  key={card.id}
+                  style={[
+                    styles.cardOpen,
+                    { width: cardSize, height: cardSize },
+                  ]}
+                >
+                  <Image
+                    source={card.img}
+                    style={{ width: cardSize * 0.8, height: cardSize * 0.8 }}
+                    resizeMode="contain"
+                  />
                 </View>
               ))}
             </View>
@@ -216,14 +232,24 @@ export default function Memoria() {
                   onPress={() => handleCardPress(card.id)}
                   activeOpacity={0.8}
                   style={[
-                    card.flipped || card.matched ? styles.cardOpen : styles.cardClosed,
+                    card.flipped || card.matched
+                      ? styles.cardOpen
+                      : styles.cardClosed,
                     { width: cardSize, height: cardSize },
                   ]}
                 >
                   {card.flipped || card.matched ? (
-                    <Image source={card.img} style={{ width: cardSize * 0.8, height: cardSize * 0.8 }} resizeMode="contain" />
+                    <Image
+                      source={card.img}
+                      style={{ width: cardSize * 0.8, height: cardSize * 0.8 }}
+                      resizeMode="contain"
+                    />
                   ) : (
-                    <Text style={[styles.question, { fontSize: cardSize * 0.4 }]}>?</Text>
+                    <Text
+                      style={[styles.question, { fontSize: cardSize * 0.4 }]}
+                    >
+                      ?
+                    </Text>
                   )}
                 </TouchableOpacity>
               ))}
@@ -234,7 +260,6 @@ export default function Memoria() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FAF8F0" },
@@ -267,7 +292,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     width: "100%",
-    paddingHorizontal: 5, // Pequena folga nas laterais
+    paddingHorizontal: 5,
   },
   cardOpen: {
     margin: 5,

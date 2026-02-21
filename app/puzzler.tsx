@@ -12,65 +12,124 @@ import {
 
 const { width } = Dimensions.get("window");
 
-const level1 = [
-  require("../assets/img/puzzle/primeiro/cores1.png"),
-  require("../assets/img/puzzle/primeiro/cores2.png"),
+const THEMES = [
+  {
+    id: 0,
+    preview: require("../assets/img/cores.png"),
+    levels: [
+      [
+        require("../assets/img/puzzle/primeiro/cores1.png"),
+        require("../assets/img/puzzle/primeiro/cores2.png"),
+      ],
+      [
+        require("../assets/img/puzzle/segundo/cores1.png"),
+        require("../assets/img/puzzle/segundo/cores2.png"),
+        require("../assets/img/puzzle/segundo/cores3.png"),
+        require("../assets/img/puzzle/segundo/cores4.png"),
+      ],
+      [
+        require("../assets/img/puzzle/terceiro/cores1.png"),
+        require("../assets/img/puzzle/terceiro/cores2.png"),
+        require("../assets/img/puzzle/terceiro/cores3.png"),
+        require("../assets/img/puzzle/terceiro/cores4.png"),
+        require("../assets/img/puzzle/terceiro/cores5.png"),
+        require("../assets/img/puzzle/terceiro/cores6.png"),
+        require("../assets/img/puzzle/terceiro/cores7.png"),
+        require("../assets/img/puzzle/terceiro/cores8.png"),
+        require("../assets/img/puzzle/terceiro/cores9.png"),
+      ],
+    ],
+  },
+  {
+    id: 1,
+    preview: require("../assets/img/cobrinha.png"),
+    levels: [
+      [
+        require("../assets/img/puzzle/primeiro/cobrinha1.png"),
+        require("../assets/img/puzzle/primeiro/cobrinha2.png"),
+      ],
+      [
+        require("../assets/img/puzzle/segundo/cobrinha1.png"),
+        require("../assets/img/puzzle/segundo/cobrinha2.png"),
+        require("../assets/img/puzzle/segundo/cobrinha3.png"),
+        require("../assets/img/puzzle/segundo/cobrinha4.png"),
+      ],
+      [
+        require("../assets/img/puzzle/terceiro/cobrinha1.png"),
+        require("../assets/img/puzzle/terceiro/cobrinha2.png"),
+        require("../assets/img/puzzle/terceiro/cobrinha3.png"),
+        require("../assets/img/puzzle/terceiro/cobrinha4.png"),
+        require("../assets/img/puzzle/terceiro/cobrinha5.png"),
+        require("../assets/img/puzzle/terceiro/cobrinha6.png"),
+        require("../assets/img/puzzle/terceiro/cobrinha7.png"),
+        require("../assets/img/puzzle/terceiro/cobrinha8.png"),
+        require("../assets/img/puzzle/terceiro/cobrinha9.png"),
+      ],
+    ],
+  },
+  {
+    id: 2,
+    preview: require("../assets/img/memoria.png"),
+    levels: [
+      [
+        require("../assets/img/puzzle/primeiro/memoria1.png"),
+        require("../assets/img/puzzle/primeiro/memoria2.png"),
+      ],
+      [
+        require("../assets/img/puzzle/segundo/memoria1.png"),
+        require("../assets/img/puzzle/segundo/memoria2.png"),
+        require("../assets/img/puzzle/segundo/memoria3.png"),
+        require("../assets/img/puzzle/segundo/memoria4.png"),
+      ],
+      [
+        require("../assets/img/puzzle/terceiro/memoria1.png"),
+        require("../assets/img/puzzle/terceiro/memoria2.png"),
+        require("../assets/img/puzzle/terceiro/memoria3.png"),
+        require("../assets/img/puzzle/terceiro/memoria4.png"),
+        require("../assets/img/puzzle/terceiro/memoria5.png"),
+        require("../assets/img/puzzle/terceiro/memoria6.png"),
+        require("../assets/img/puzzle/terceiro/memoria7.png"),
+        require("../assets/img/puzzle/terceiro/memoria8.png"),
+        require("../assets/img/puzzle/terceiro/memoria9.png"),
+      ],
+    ],
+  },
 ];
-
-const level2 = [
-  require("../assets/img/puzzle/segundo/cores1.png"),
-  require("../assets/img/puzzle/segundo/cores2.png"),
-  require("../assets/img/puzzle/segundo/cores3.png"),
-  require("../assets/img/puzzle/segundo/cores4.png"),
-];
-
-const level3 = [
-  require("../assets/img/puzzle/terceiro/cores1.png"),
-  require("../assets/img/puzzle/terceiro/cores2.png"),
-  require("../assets/img/puzzle/terceiro/cores3.png"),
-  require("../assets/img/puzzle/terceiro/cores4.png"),
-  require("../assets/img/puzzle/terceiro/cores5.png"),
-  require("../assets/img/puzzle/terceiro/cores6.png"),
-  require("../assets/img/puzzle/terceiro/cores7.png"),
-  require("../assets/img/puzzle/terceiro/cores8.png"),
-  require("../assets/img/puzzle/terceiro/cores9.png"),
-];
-
-const LEVELS = [level1, level2, level3];
 
 export default function Puzzler() {
-  const [phase, setPhase] = useState<"intro" | "observe" | "play">("intro");
+  const [phase, setPhase] = useState<
+    "selection" | "intro" | "observe" | "play"
+  >("selection");
+  const [selectedTheme, setSelectedTheme] = useState(0);
   const [level, setLevel] = useState(0);
   const [pieces, setPieces] = useState<ImageSourcePropType[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [lives, setLives] = useState(3);
   const [timer, setTimer] = useState(4);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const startPhase = () => {
-    if (level === 2) {
-      setLives(5);
-    } else {
-      setLives(3);
-    }
-    setPhase("observe");
-  };
-
-  const totalPieces = LEVELS[level].length;
+  const currentLevelImages = THEMES[selectedTheme].levels[level];
+  const totalPieces = currentLevelImages.length;
   const BOARD_WIDTH = width * 0.95;
 
-  let cardWidth = 0;
-  let cardHeight = 0;
+  let cardWidth =
+    totalPieces === 2
+      ? (BOARD_WIDTH - 10) / 2
+      : totalPieces <= 4
+        ? (BOARD_WIDTH - 80) / 2
+        : (BOARD_WIDTH - 90) / 3;
+  let cardHeight = totalPieces === 2 ? cardWidth * 1.5 : cardWidth;
 
-  if (totalPieces === 2) {
-    cardWidth = (BOARD_WIDTH - 10) / 2;
-    cardHeight = cardWidth * 1.5;
-  } else if (totalPieces <= 4) {
-    cardWidth = (BOARD_WIDTH - 80) / 2;
-    cardHeight = cardWidth;
-  } else {
-    cardWidth = (BOARD_WIDTH - 90) / 3;
-    cardHeight = cardWidth;
-  }
+  const startPhase = () => {
+    setLives(level === 2 ? 5 : 3);
+    setPhase("observe");
+    setIsProcessing(false);
+  };
+
+  const handleThemeChoice = (themeIndex: number) => {
+    setSelectedTheme(themeIndex);
+    setPhase("intro");
+  };
 
   useEffect(() => {
     if (phase === "observe") {
@@ -90,7 +149,7 @@ export default function Puzzler() {
   }, [phase, level]);
 
   function shuffle() {
-    const base = [...LEVELS[level]];
+    const base = [...currentLevelImages];
     let shuffled = [...base];
     do {
       for (let i = shuffled.length - 1; i > 0; i--) {
@@ -103,24 +162,14 @@ export default function Puzzler() {
   }
 
   function handleSelect(index: number) {
+    if (phase !== "play" || isProcessing) return;
     if (selected === null) {
       setSelected(index);
       return;
-    } else {
-      setLives((l) => {
-        if (l <= 1) {
-          router.push({
-            pathname: "/resultado",
-            params: {
-              status: "derrota",
-              jogoId: "puzzler",
-              niveisConcluidos: level,
-            },
-          });
-          return 0;
-        }
-        return l - 1;
-      });
+    }
+    if (selected === index) {
+      setSelected(null);
+      return;
     }
 
     const newPieces = [...pieces];
@@ -131,32 +180,74 @@ export default function Puzzler() {
     setPieces(newPieces);
     setSelected(null);
 
-    if (newPieces.every((img, i) => img === LEVELS[level][i])) {
-      if (level === LEVELS.length - 1) {
-        router.push({
-          pathname: "/resultado",
-          params: {
-            status: "vitoria",
-            jogoId: "puzzler",
-            niveisConcluidos: 3,
-            totalDoJogo: 3,
-          },
-        });
-      } else {
-        setLevel(level + 1);
-        setPhase("intro");
-      }
+    // Lógica de Vidas/Derrota
+    if (!newPieces.every((img, i) => img === currentLevelImages[i])) {
+      setLives((l) => {
+        if (l <= 1) {
+          setIsProcessing(true);
+          setTimeout(() => {
+            router.push({
+              pathname: "/resultado",
+              params: {
+                status: "derrota",
+                jogoId: "puzzler",
+                niveisConcluidos: level,
+              },
+            });
+          }, 1500);
+          return 0;
+        }
+        return l - 1;
+      });
+    }
+
+    if (newPieces.every((img, i) => img === currentLevelImages[i])) {
+      setIsProcessing(true);
+      setTimeout(() => {
+        if (level === THEMES[selectedTheme].levels.length - 1) {
+          router.push({
+            pathname: "/resultado",
+            params: {
+              status: "vitoria",
+              jogoId: "puzzler",
+              niveisConcluidos: 3,
+              totalDoJogo: 3,
+            },
+          });
+        } else {
+          setLevel(level + 1);
+          setPhase("intro");
+          setIsProcessing(false);
+        }
+      }, 2500);
     }
   }
 
-  const displayPieces = phase === "observe" ? LEVELS[level] : pieces;
+  const displayPieces = phase === "observe" ? currentLevelImages : pieces;
 
   return (
     <View style={styles.container}>
+      {phase === "selection" && (
+        <View style={styles.center}>
+          <Text style={styles.instructionTitle}>Escolha um desenho!</Text>
+          <View style={styles.selectionGrid}>
+            {THEMES.map((theme, index) => (
+              <TouchableOpacity
+                key={theme.id}
+                onPress={() => handleThemeChoice(index)}
+                style={styles.themeCard}
+              >
+                <Image source={theme.preview} style={styles.themeImage} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+
       {phase === "intro" && (
         <View style={styles.center}>
           <Text style={styles.title}>Fase {level + 1}</Text>
-          <Text style={styles.subtitle}> Vamos jogar? </Text>
+          <Text style={styles.subtitle}>Vamos montar?</Text>
           <TouchableOpacity style={styles.button} onPress={startPhase}>
             <Text style={styles.buttonText}>Começar</Text>
           </TouchableOpacity>
@@ -175,10 +266,7 @@ export default function Puzzler() {
               </View>
             ) : (
               <View style={styles.center}>
-                <Text style={styles.instructionTitle}>Agora é sua vez!</Text>
-                <Text style={styles.instructionSub}>
-                  Toque em uma peça e na outra para trocar
-                </Text>
+                <Text style={styles.instructionTitle}>Sua vez!</Text>
                 <Text style={styles.livesSmall}>
                   Vidas: {"❤️".repeat(lives)}
                 </Text>
@@ -199,7 +287,7 @@ export default function Puzzler() {
               <TouchableOpacity
                 key={i}
                 onPress={() => handleSelect(i)}
-                disabled={phase === "observe"}
+                disabled={phase === "observe" || isProcessing}
                 style={[
                   styles.card,
                   {
@@ -260,12 +348,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
   },
-  instructionSub: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    paddingHorizontal: 20,
-  },
   livesSmall: {
     fontSize: 18,
     marginTop: 8,
@@ -278,10 +360,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 15,
     elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
     borderWidth: 1,
     borderColor: "#7EC8E3",
   },
@@ -305,9 +383,40 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: "#AEE1F9",
     marginTop: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 30,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
     borderRadius: 14,
   },
-  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" },
+  buttonText: {
+    color: "#333",
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  selectionGrid: {
+    flexDirection: "column",
+    marginTop: 20,
+    alignItems: "center",
+  },
+  themeCard: {
+    padding: 20,
+    marginBottom: 20,
+    width: 250,
+    alignItems: "center",
+    backgroundColor: "#AEE1F9",
+    borderRadius: 12,
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#7EC8E3",
+  },
+  themeImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+  },
+  themeLabel: {
+    marginTop: 10,
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#5D4037",
+  },
 });

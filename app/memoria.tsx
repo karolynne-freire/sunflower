@@ -122,7 +122,6 @@ export default function Memoria() {
         setCards(matchedCards);
 
         if (matchedCards.every((c) => c.matched)) {
-          // AUMENTADO: 2.5 segundos para a criança ver todas as cartas abertas e comemorar
           setTimeout(() => {
             if (level === TOTAL_LEVELS) {
               router.push({
@@ -262,23 +261,42 @@ export default function Memoria() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FAF8F0" },
+  container: {
+    flex: 1,
+    backgroundColor: "#FAF8F0",
+  },
   scrollContent: {
     flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 40,
   },
-  centerBox: { width: "100%", alignItems: "center", paddingHorizontal: 10 },
-  levelText: { fontSize: 34, fontWeight: "bold", marginBottom: 6 },
-  simpleMessage: { fontSize: 24, marginBottom: 10, textAlign: "center" },
+  centerBox: {
+    width: "100%",
+    alignItems: "center",
+    paddingHorizontal: 10,
+  },
+  levelText: {
+    fontSize: 34,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
+  simpleMessage: {
+    fontSize: 24,
+    marginBottom: 10,
+    textAlign: "center",
+  },
   timerText: {
     fontSize: 30,
     fontWeight: "bold",
     marginBottom: 12,
     color: "#333",
   },
-  errorText: { fontSize: 22, marginBottom: 10, color: "#333" },
+  errorText: {
+    fontSize: 22,
+    marginBottom: 10,
+    color: "#333",
+  },
   button: {
     backgroundColor: "#AEE1F9",
     marginTop: 20,
@@ -286,7 +304,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 14,
   },
-  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" },
+  buttonText: {
+    color: "#333",
+    fontSize: 22,
+    fontWeight: "bold",
+  },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -310,5 +332,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  question: { fontWeight: "bold", color: "#FFF" },
+  question: {
+    fontWeight: "bold",
+    color: "#FFF",
+  },
 });

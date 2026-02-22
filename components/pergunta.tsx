@@ -1,5 +1,13 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
-import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useHumor } from "../app/context/HumorContext";
 
 type PerguntaProps = {
@@ -8,64 +16,93 @@ type PerguntaProps = {
 };
 
 export default function Pergunta({ visible, onClose }: PerguntaProps) {
-  const [question, setQuestion] = useState("");
   const { setHumor } = useHumor();
+  const [etapa, setEtapa] = useState<number>(0);
 
-  const questions = [
-    "Você sorriu hoje?",
-    "Você se sentiu bem consigo mesmo(a)?",
-    "Você fez algo que te deixou feliz?",
-    "Você fez algo que te deixou ansioso?",
-    "Você fez algo que te deixou bravo?",
+  const perguntasProfessor = [
+    {
+      infantil: "Você gosta quando os amigos te chamam para brincar?",
+      emocao: "feliz",
+    },
+    {
+      infantil: "Alguém já pegou um brinquedo seu sem pedir licença?",
+      emocao: "bravo",
+    },
+    {
+      infantil: "Você já ficou esperando muito tempo por uma surpresa?",
+      emocao: "ansioso",
+    },
   ];
 
   useEffect(() => {
-    if (visible) {
-      const randomQuestion =
-        questions[Math.floor(Math.random() * questions.length)];
-      setQuestion(randomQuestion);
-    }
+    const verificarEtapa = async () => {
+      const salvas = await AsyncStorage.getItem("@respostas_contagem");
+      const lista = salvas ? JSON.parse(salvas) : [];
+      setEtapa(lista.length < 3 ? lista.length : 0);
+    };
+    if (visible) verificarEtapa();
   }, [visible]);
 
-  const handleAnswer = (answer: "sim" | "nao") => {
-    let mood: "feliz" | "triste" | "ansioso" | "bravo" = "feliz";
+  const handleAnswer = async (answer: "sim" | "nao") => {
+    try {
+      const salvas = await AsyncStorage.getItem("@respostas_contagem");
+      let lista = salvas ? JSON.parse(salvas) : [];
 
-    if (question.includes("ansioso")) {
-      mood = answer === "sim" ? "ansioso" : "feliz";
-    } else if (question.includes("bravo")) {
-      mood = answer === "sim" ? "bravo" : "feliz";
-    } else {
-      mood = answer === "sim" ? "feliz" : "triste";
+      lista.push({
+        emocao: perguntasProfessor[etapa].emocao,
+        confirmou: answer === "sim",
+      });
+
+      await AsyncStorage.setItem("@respostas_contagem", JSON.stringify(lista));
+
+      const novaEnergia = Math.min(lista.length * 33.4, 100);
+      await AsyncStorage.setItem(
+        "@energia_sunny",
+        Math.round(novaEnergia).toString(),
+      );
+
+      if (lista.length >= 3) {
+        setHumor("calculando");
+
+        setTimeout(() => {
+          onClose();
+        }, 200);
+
+        return;
+      }
+
+      onClose();
+    } catch (e) {
+      console.log("Erro ao salvar resposta:", e);
     }
-
-    setHumor(mood);
-    onClose();
   };
 
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View style={styles.modalBackground}>
         <View style={styles.modalBox}>
-                    <Image
+          <Image
             source={require("../assets/img/pergunta.png")}
             style={styles.character}
             resizeMode="contain"
           />
-
-          {/* Texto */}
-          <Text style={styles.question}>{question}</Text>
-
-          {/* Botões */}
+          <Text style={styles.question}>
+            {perguntasProfessor[etapa]?.infantil}
+          </Text>
           <View style={styles.buttons}>
-            <TouchableOpacity onPress={() => handleAnswer("sim")} style={styles.btnWhite}>
-              <Text style={styles.btnWhiteText}>Sim</Text>
+            <TouchableOpacity
+              onPress={() => handleAnswer("sim")}
+              style={styles.btnWhite}
+            >
+              <Text style={styles.btnText}>Sim</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => handleAnswer("nao")} style={styles.btnWhite}>
-              <Text style={styles.btnWhiteText}>Não</Text>
+            <TouchableOpacity
+              onPress={() => handleAnswer("nao")}
+              style={styles.btnWhite}
+            >
+              <Text style={styles.btnText}>Não</Text>
             </TouchableOpacity>
           </View>
-
         </View>
       </View>
     </Modal>
@@ -79,45 +116,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
   },
-
   modalBox: {
-    backgroundColor: "#F6AFA3", 
+    backgroundColor: "#F6AFA3",
     width: "80%",
     padding: 20,
     borderRadius: 25,
     alignItems: "center",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-    elevation: 6,
   },
-
   character: {
-    width: 160,
-    height: 160,
+    width: 150,
+    height: 150,
     position: "absolute",
-    top: -50,
-    right: -30,
+    top: -60,
+    right: -20,
   },
-
   question: {
-    fontSize: 28,
+    fontSize: 24,
     color: "#333",
     textAlign: "center",
-    marginTop: 30,
+    marginTop: 40,
     marginBottom: 20,
     fontWeight: "600",
-    lineHeight: 24,
-    width: "70%",
+    width: "80%",
   },
-
-  buttons: {
-    flexDirection: "row",
-    gap: 10,
-  },
-
+  buttons: { flexDirection: "row", gap: 10 },
   btnWhite: {
     backgroundColor: "#FFF",
     paddingVertical: 10,
@@ -126,13 +148,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
   },
-
-  btnWhiteText: {
-    fontSize: 25,
-    color: "#555",
-    fontWeight: "600",
-  },
+  btnText: { fontSize: 22, color: "#555", fontWeight: "600" },
 });
-
-
-

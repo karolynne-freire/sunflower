@@ -70,7 +70,9 @@ export default function Resultado() {
 
   const handleClose = () => {
     setShowModal(false);
-    router.push("/home");
+    setTimeout(() => {
+      router.replace("/home");
+    }, 100);
   };
 
   return (

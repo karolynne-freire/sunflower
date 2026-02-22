@@ -178,7 +178,8 @@ export default function SnakeGame() {
 
       {step === "levelUp" && (
         <View style={styles.center}>
-          <Text style={styles.title}>Fase {level + 1} 🎉</Text>
+          <Text style={styles.title}>Fase {level + 1} </Text>
+          <Text style={styles.simpleMessage}>Vamos jogar?</Text>
 
           <TouchableOpacity
             style={styles.button}
@@ -187,7 +188,7 @@ export default function SnakeGame() {
               startLoop(LEVELS[levelRef.current].speed);
             }}
           >
-            <Text style={styles.buttonText}>Continuar</Text>
+            <Text style={styles.buttonText}>Começar</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -310,6 +311,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
   },
+
   btn: {
     backgroundColor: "#AEE1F9",
     width: 80,

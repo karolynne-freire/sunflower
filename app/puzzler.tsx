@@ -110,15 +110,21 @@ export default function Puzzler() {
 
   const currentLevelImages = THEMES[selectedTheme].levels[level];
   const totalPieces = currentLevelImages.length;
-  const BOARD_WIDTH = width * 0.95;
+  const BOARD_WIDTH = Math.floor(width * 0.95);
 
-  let cardWidth =
+  const isSolved =
+    pieces.length > 0 &&
+    pieces.every((img, i) => img === currentLevelImages[i]);
+
+  let cardWidth = Math.floor(
     totalPieces === 2
-      ? (BOARD_WIDTH - 10) / 2
+      ? (BOARD_WIDTH - (isSolved ? 0 : 20)) / 2
       : totalPieces <= 4
-        ? (BOARD_WIDTH - 80) / 2
-        : (BOARD_WIDTH - 90) / 3;
-  let cardHeight = totalPieces === 2 ? cardWidth * 1.5 : cardWidth;
+        ? (BOARD_WIDTH - (isSolved ? 0 : 40)) / 2
+        : (BOARD_WIDTH - (isSolved ? 0 : 40)) / 3,
+  );
+
+  let cardHeight = totalPieces === 2 ? Math.floor(cardWidth * 1.5) : cardWidth;
 
   const startPhase = () => {
     setLives(level === 2 ? 5 : 3);
@@ -180,8 +186,9 @@ export default function Puzzler() {
     setPieces(newPieces);
     setSelected(null);
 
-    // Lógica de Vidas/Derrota
-    if (!newPieces.every((img, i) => img === currentLevelImages[i])) {
+    const checkWin = newPieces.every((img, i) => img === currentLevelImages[i]);
+
+    if (!checkWin) {
       setLives((l) => {
         if (l <= 1) {
           setIsProcessing(true);
@@ -199,9 +206,7 @@ export default function Puzzler() {
         }
         return l - 1;
       });
-    }
-
-    if (newPieces.every((img, i) => img === currentLevelImages[i])) {
+    } else {
       setIsProcessing(true);
       setTimeout(() => {
         if (level === THEMES[selectedTheme].levels.length - 1) {
@@ -280,6 +285,8 @@ export default function Puzzler() {
               {
                 width: BOARD_WIDTH,
                 flexWrap: totalPieces === 2 ? "nowrap" : "wrap",
+                padding: isSolved ? 0 : 8,
+                borderWidth: isSolved ? 0 : 1,
               },
             ]}
           >
@@ -293,7 +300,10 @@ export default function Puzzler() {
                   {
                     width: cardWidth,
                     height: cardHeight,
-                    margin: totalPieces === 2 ? 4 : 8,
+                    margin: isSolved ? 0 : 2,
+                    borderWidth: isSolved ? 0 : 1,
+                    borderRadius: isSolved ? 0 : 8,
+                    backgroundColor: isSolved ? "transparent" : "#F9F9F9",
                   },
                   selected === i && styles.selectedCard,
                 ]}
@@ -301,7 +311,9 @@ export default function Puzzler() {
                 <Image
                   source={img}
                   style={styles.image}
-                  resizeMode={totalPieces === 2 ? "contain" : "cover"}
+                  resizeMode={isSolved ? "stretch" : "cover"}
+                  fadeDuration={0}
+                  progressiveRenderingEnabled={true}
                 />
               </TouchableOpacity>
             ))}
@@ -319,63 +331,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  center: {
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  subtitle: {
-    fontSize: 26,
-    marginBottom: 10,
-  },
+  center: { alignItems: "center" },
+  title: { fontSize: 32, fontWeight: "bold", color: "#333" },
+  subtitle: { fontSize: 26, marginBottom: 10 },
   textContainer: {
     marginBottom: 20,
     minHeight: 110,
     justifyContent: "center",
     alignItems: "center",
   },
-  infoText: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#666",
-    marginTop: 5,
-  },
-  instructionTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  livesSmall: {
-    fontSize: 18,
-    marginTop: 8,
-  },
+  infoText: { fontSize: 20, fontWeight: "600", color: "#666", marginTop: 5 },
+  instructionTitle: { fontSize: 28, fontWeight: "bold", color: "#333" },
+  livesSmall: { fontSize: 18, marginTop: 8 },
   board: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#FFF",
-    padding: 10,
     borderRadius: 15,
     elevation: 10,
-    borderWidth: 1,
     borderColor: "#7EC8E3",
+    overflow: "hidden",
   },
   card: {
-    borderRadius: 10,
-    backgroundColor: "#F9F9F9",
-    overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#F9F9F9",
+    borderColor: "#EEE",
+    overflow: "hidden",
   },
-  selectedCard: {
-    borderWidth: 3,
-    borderColor: "#7EC8E3",
-  },
+  selectedCard: { borderWidth: 3, borderColor: "#7EC8E3" },
   image: {
     width: "100%",
     height: "100%",
@@ -387,11 +371,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 14,
   },
-  buttonText: {
-    color: "#333",
-    fontSize: 22,
-    fontWeight: "bold",
-  },
+  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" },
   selectionGrid: {
     flexDirection: "column",
     marginTop: 20,
@@ -404,19 +384,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#AEE1F9",
     borderRadius: 12,
-    justifyContent: "center",
     borderWidth: 2,
     borderColor: "#7EC8E3",
   },
-  themeImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 10,
-  },
-  themeLabel: {
-    marginTop: 10,
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#5D4037",
-  },
+  themeImage: { width: 150, height: 150, borderRadius: 10 },
 });

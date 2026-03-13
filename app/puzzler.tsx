@@ -137,6 +137,12 @@ export default function Puzzler() {
     setPhase("intro");
   };
 
+  const resetToSelection = () => {
+    setLevel(0);
+    setPhase("selection");
+    setPieces([]);
+  };
+
   useEffect(() => {
     if (phase === "observe") {
       setTimer(4);
@@ -206,7 +212,7 @@ export default function Puzzler() {
         }
         return l - 1;
       });
-    } else {
+    } else if (checkWin) {
       setIsProcessing(true);
       setTimeout(() => {
         if (level === THEMES[selectedTheme].levels.length - 1) {
@@ -246,6 +252,12 @@ export default function Puzzler() {
               </TouchableOpacity>
             ))}
           </View>
+          <TouchableOpacity
+            style={styles.exitButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.exitButtonText}>Sair do Jogo</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -253,8 +265,13 @@ export default function Puzzler() {
         <View style={styles.center}>
           <Text style={styles.title}>Fase {level + 1}</Text>
           <Text style={styles.subtitle}>Vamos montar?</Text>
+
           <TouchableOpacity style={styles.button} onPress={startPhase}>
             <Text style={styles.buttonText}>Começar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} onPress={resetToSelection}>
+            <Text style={styles.buttonText}>Escolher outro tema</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -313,11 +330,16 @@ export default function Puzzler() {
                   style={styles.image}
                   resizeMode={isSolved ? "stretch" : "cover"}
                   fadeDuration={0}
-                  progressiveRenderingEnabled={true}
                 />
               </TouchableOpacity>
             ))}
           </View>
+
+          {!isSolved && (
+            <TouchableOpacity style={styles.button} onPress={resetToSelection}>
+              <Text style={styles.buttonText}>Desistir e voltar</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -360,18 +382,39 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   selectedCard: { borderWidth: 3, borderColor: "#7EC8E3" },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
+  image: { width: "100%", height: "100%" },
   button: {
     backgroundColor: "#AEE1F9",
+    width: 250,
+    height: 80,
     marginTop: 20,
-    paddingVertical: 20,
-    paddingHorizontal: 40,
+    justifyContent: "center",
+    textAlign: "center",
     borderRadius: 14,
+    elevation: 3,
   },
-  buttonText: { color: "#333", fontSize: 22, fontWeight: "bold" },
+  buttonText: {
+    color: "#333",
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  exitButton: {
+    backgroundColor: "#FFBABA",
+    width: 250,
+    height: 80,
+    marginTop: 1,
+    justifyContent: "center",
+    textAlign: "center",
+    borderRadius: 14,
+    elevation: 3,
+  },
+  exitButtonText: {
+    color: "#D8000C",
+    fontWeight: "bold",
+    fontSize: 22,
+    textAlign: "center",
+  },
   selectionGrid: {
     flexDirection: "column",
     marginTop: 20,

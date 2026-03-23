@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import ModalConfirmacao from "../components/ModalConfirmacao";
 
 const { width } = Dimensions.get("window");
 
@@ -107,6 +108,7 @@ export default function Puzzler() {
   const [lives, setLives] = useState(3);
   const [timer, setTimer] = useState(4);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [modalVisivel, setModalVisivel] = useState(false);
 
   const currentLevelImages = THEMES[selectedTheme].levels[level];
   const totalPieces = currentLevelImages.length;
@@ -123,8 +125,15 @@ export default function Puzzler() {
         ? (BOARD_WIDTH - (isSolved ? 0 : 40)) / 2
         : (BOARD_WIDTH - (isSolved ? 0 : 40)) / 3,
   );
-
   let cardHeight = totalPieces === 2 ? Math.floor(cardWidth * 1.5) : cardWidth;
+
+  const abrirModalSair = () => setModalVisivel(true);
+
+  const confirmarSaida = () => {
+    setModalVisivel(false);
+    if (phase === "selection") router.back();
+    else resetToSelection();
+  };
 
   const startPhase = () => {
     setLives(level === 2 ? 5 : 3);
@@ -238,6 +247,11 @@ export default function Puzzler() {
 
   return (
     <View style={styles.container}>
+      {/* Botão Seta de Voltar sempre visível */}
+      <TouchableOpacity style={styles.backIconButton} onPress={abrirModalSair}>
+        <Text style={{ fontSize: 30 }}>⬅️</Text>
+      </TouchableOpacity>
+
       {phase === "selection" && (
         <View style={styles.center}>
           <Text style={styles.instructionTitle}>Escolha um desenho!</Text>
@@ -252,12 +266,6 @@ export default function Puzzler() {
               </TouchableOpacity>
             ))}
           </View>
-          <TouchableOpacity
-            style={styles.exitButton}
-            onPress={() => router.back()}
-          >
-            <Text style={styles.exitButtonText}>Sair do Jogo</Text>
-          </TouchableOpacity>
         </View>
       )}
 
@@ -265,13 +273,8 @@ export default function Puzzler() {
         <View style={styles.center}>
           <Text style={styles.title}>Fase {level + 1}</Text>
           <Text style={styles.subtitle}>Vamos montar?</Text>
-
           <TouchableOpacity style={styles.button} onPress={startPhase}>
             <Text style={styles.buttonText}>Começar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button} onPress={resetToSelection}>
-            <Text style={styles.buttonText}>Escolher outro tema</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -334,14 +337,14 @@ export default function Puzzler() {
               </TouchableOpacity>
             ))}
           </View>
-
-          {!isSolved && (
-            <TouchableOpacity style={styles.button} onPress={resetToSelection}>
-              <Text style={styles.buttonText}>Desistir e voltar</Text>
-            </TouchableOpacity>
-          )}
         </View>
       )}
+
+      <ModalConfirmacao
+        visivel={modalVisivel}
+        onConfirmar={confirmarSaida}
+        onCancelar={() => setModalVisivel(false)}
+      />
     </View>
   );
 }
@@ -352,6 +355,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#FAF8F0",
     alignItems: "center",
     justifyContent: "center",
+  },
+  backIconButton: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    width: 60,
+    height: 60,
+    backgroundColor: "#FFF",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+    borderWidth: 2,
+    borderColor: "#AEE1F9",
   },
   center: { alignItems: "center" },
   title: { fontSize: 32, fontWeight: "bold", color: "#333" },
@@ -389,7 +406,6 @@ const styles = StyleSheet.create({
     height: 80,
     marginTop: 20,
     justifyContent: "center",
-    textAlign: "center",
     borderRadius: 14,
     elevation: 3,
   },
@@ -397,22 +413,6 @@ const styles = StyleSheet.create({
     color: "#333",
     fontSize: 22,
     fontWeight: "bold",
-    textAlign: "center",
-  },
-  exitButton: {
-    backgroundColor: "#FFBABA",
-    width: 250,
-    height: 80,
-    marginTop: 1,
-    justifyContent: "center",
-    textAlign: "center",
-    borderRadius: 14,
-    elevation: 3,
-  },
-  exitButtonText: {
-    color: "#D8000C",
-    fontWeight: "bold",
-    fontSize: 22,
     textAlign: "center",
   },
   selectionGrid: {

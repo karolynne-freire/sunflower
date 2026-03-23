@@ -3,7 +3,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import { Animated, Image, StyleSheet, Text, View } from "react-native";
-import Button from "../components/button";
+import Button from "../components/Button";
 import { Humor, useHumor } from "./context/HumorContext";
 
 export default function Home() {

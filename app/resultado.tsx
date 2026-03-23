@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import PerguntaEmocional from "../components/pergunta";
+import PerguntaEmocional from "../components/Pergunta";
 
 const CONFIG_JOGOS = {
   snake: {

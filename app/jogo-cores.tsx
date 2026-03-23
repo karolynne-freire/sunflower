@@ -34,6 +34,12 @@ export default function JogoCores() {
     setPhase("memorize");
   }
 
+  const handleReset = () => {
+    setPhaseIndex(0);
+    setPhase("intro");
+    setLives(3);
+  };
+
   const generateSequence = () => {
     const length = PHASES[phaseIndex];
     const seq: string[] = [];
@@ -137,6 +143,13 @@ export default function JogoCores() {
           <TouchableOpacity style={styles.button} onPress={startGame}>
             <Text style={styles.buttonText}>Começar</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.exitButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.exitButtonText}>Sair do Jogo</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -209,6 +222,13 @@ export default function JogoCores() {
           <Text style={styles.lives}>
             Vidas: {Array(lives).fill("❤️").join(" ")}
           </Text>
+
+          <TouchableOpacity
+            style={[styles.button, { marginTop: 40 }]}
+            onPress={handleReset}
+          >
+            <Text style={styles.buttonText}>Voltar</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -287,9 +307,28 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: "#AEE1F9",
     marginTop: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 30,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
     borderRadius: 14,
+    minWidth: 250,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  buttonText: { fontSize: 22, fontWeight: "bold" },
+  buttonText: { fontSize: 22, fontWeight: "bold", color: "#333" },
+  exitButton: {
+    backgroundColor: "#FFBABA",
+    marginTop: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 14,
+    minWidth: 250,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  exitButtonText: {
+    color: "#D8000C",
+    fontWeight: "bold",
+    fontSize: 22,
+    textAlign: "center",
+  },
 });

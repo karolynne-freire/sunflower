@@ -170,6 +170,12 @@ export default function Memoria() {
     }
   }
 
+  // Função para voltar para a tela de introdução/seleção
+  const handleGoBack = () => {
+    setLevel(1);
+    setStep("intro");
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -180,11 +186,20 @@ export default function Memoria() {
           <View style={styles.centerBox}>
             <Text style={styles.levelText}>Fase {level}</Text>
             <Text style={styles.simpleMessage}>Vamos jogar?</Text>
+
             <TouchableOpacity
               style={styles.button}
               onPress={() => setStep("memorize")}
             >
               <Text style={styles.buttonText}>Começar</Text>
+            </TouchableOpacity>
+
+            {/* BOTÃO SAIR DO JOGO */}
+            <TouchableOpacity
+              style={styles.exitButton}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.exitButtonText}>Sair do Jogo</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -253,6 +268,14 @@ export default function Memoria() {
                 </TouchableOpacity>
               ))}
             </View>
+
+            {/* BOTÃO VOLTAR DURANTE O JOGO */}
+            <TouchableOpacity
+              style={[styles.button, { marginTop: 30 }]}
+              onPress={handleGoBack}
+            >
+              <Text style={styles.buttonText}>Voltar</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -303,11 +326,28 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 40,
     borderRadius: 14,
+    minWidth: 250,
+    alignItems: "center",
   },
   buttonText: {
     color: "#333",
     fontSize: 22,
     fontWeight: "bold",
+  },
+  exitButton: {
+    backgroundColor: "#FFBABA",
+    marginTop: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 14,
+    minWidth: 250,
+    alignItems: "center",
+  },
+  exitButtonText: {
+    color: "#D8000C",
+    fontWeight: "bold",
+    fontSize: 22,
+    textAlign: "center",
   },
   grid: {
     flexDirection: "row",

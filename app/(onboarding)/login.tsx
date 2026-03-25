@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Input from "../../components/input";
+import Input from "../../components/Input";
 
 export default function Login() {
   const [name, setName] = useState("");

@@ -1,11 +1,11 @@
 import { Link } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import Button from "../../components/button";
+import Button from "../../components/Button";
 
 export default function Presentation1() {
   return (
-        <View style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.row}>
         <Image
           source={require("../../assets/img/sunny-apresent.png")}
@@ -23,9 +23,9 @@ export default function Presentation1() {
         Aqui, nós vamos brincar e aprender juntos!{"\n"}
       </Text>
 
-     <Link href="/Presentation2" asChild>
-    <Button title="Avançar" />
-  </Link>
+      <Link href="/Presentation2" asChild>
+        <Button title="Avançar" />
+      </Link>
     </View>
   );
 }
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: "bold",
-    marginBottom:5,
+    marginBottom: 5,
     color: "#333",
   },
   subtitle: {

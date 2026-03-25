@@ -3,12 +3,12 @@ import React, { useEffect, useState } from "react";
 import {
   Dimensions,
   Image,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import ModalConfirmacao from "../components/ModalConfirmacao";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -28,8 +28,10 @@ export default function Memoria() {
   const [memorizeTime, setMemorizeTime] = useState(6);
   const [selected, setSelected] = useState<number[]>([]);
   const [errors, setErrors] = useState(0);
+  const [modalVisivel, setModalVisivel] = useState(false);
 
   const TOTAL_LEVELS = 8;
+  const MAX_LIVES = level <= 4 ? 3 : 5;
 
   const allImages = [
     require("../assets/img/cobrinha.png"),
@@ -56,7 +58,6 @@ export default function Memoria() {
   function createCards() {
     const pairs = level + 1;
     const imgs = allImages.slice(0, pairs);
-
     const duplicated = [...imgs, ...imgs]
       .map((img, index) => ({
         id: index,
@@ -78,7 +79,6 @@ export default function Memoria() {
   useEffect(() => {
     if (step === "memorize") {
       setMemorizeTime(memorizeByLevel[level - 1]);
-
       const timer = setInterval(() => {
         setMemorizeTime((old) => {
           if (old <= 1) {
@@ -93,19 +93,15 @@ export default function Memoria() {
           return old - 1;
         });
       }, 1000);
-
       return () => clearInterval(timer);
     }
   }, [step]);
 
   function handleCardPress(id: number) {
-    if (step !== "game") return;
-    if (selected.length >= 2) return;
-
+    if (step !== "game" || selected.length >= 2) return;
     const updated = cards.map((c) =>
       c.id === id && !c.flipped && !c.matched ? { ...c, flipped: true } : c,
     );
-
     setCards(updated);
     const newSelected = [...selected, id];
     setSelected(newSelected);
@@ -120,7 +116,6 @@ export default function Memoria() {
           c.img === cardA?.img ? { ...c, matched: true } : c,
         );
         setCards(matchedCards);
-
         if (matchedCards.every((c) => c.matched)) {
           setTimeout(() => {
             if (level === TOTAL_LEVELS) {
@@ -137,12 +132,12 @@ export default function Memoria() {
               setLevel((prev) => prev + 1);
               setStep("intro");
             }
-          }, 2500);
+          }, 2000);
         }
       } else {
         setErrors((prev) => {
           const updatedErrors = prev + 1;
-          if (updatedErrors >= 3) {
+          if (updatedErrors >= MAX_LIVES) {
             setTimeout(() => {
               router.push({
                 pathname: "/resultado",
@@ -153,29 +148,49 @@ export default function Memoria() {
                   totalDoJogo: TOTAL_LEVELS,
                 },
               });
-            }, 2500);
+            }, 2000);
           }
           return updatedErrors;
         });
-
         setTimeout(() => {
           setCards((prev) =>
             prev.map((c) =>
               c.id === a || c.id === b ? { ...c, flipped: false } : c,
             ),
           );
-        }, 1500);
+        }, 1200);
       }
-      setTimeout(() => setSelected([]), 1600);
+      setTimeout(() => setSelected([]), 1300);
     }
   }
 
+  const abrirModalSair = () => setModalVisivel(true);
+  const confirmarSaida = () => {
+    setModalVisivel(false);
+    router.back();
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backIconButton}
+          onPress={abrirModalSair}
+        >
+          <Text style={{ fontSize: 24 }}>⬅️</Text>
+        </TouchableOpacity>
+
+        {step === "game" && (
+          <View style={styles.scoreContainer}>
+            <Text style={styles.scoreItem}>
+              ⭐ {level}/{TOTAL_LEVELS}
+            </Text>
+            <Text style={styles.scoreItem}>❤️ {MAX_LIVES - errors}</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.gameContainer}>
         {step === "intro" && (
           <View style={styles.centerBox}>
             <Text style={styles.levelText}>Fase {level}</Text>
@@ -215,15 +230,14 @@ export default function Memoria() {
 
         {step === "transition" && (
           <View style={styles.centerBox}>
-            <Text style={styles.simpleMessage}>Agora é sua vez! 😄</Text>
-            <Text style={styles.simpleMessage}>As cartas estão virando…</Text>
+            <Text style={styles.title}>Agora é sua vez! 😄</Text>
+            <Text style={styles.subtitle}>As cartas estão virando…</Text>
           </View>
         )}
 
         {step === "game" && (
           <View style={styles.centerBox}>
-            <Text style={styles.simpleMessage}>Encontre os pares ⭐</Text>
-            <Text style={styles.errorText}>Erros: {errors} / 3</Text>
+            <Text style={styles.simpleMessage}>Encontre os pares</Text>
             <View style={styles.grid}>
               {cards.map((card) => (
                 <TouchableOpacity
@@ -255,46 +269,66 @@ export default function Memoria() {
             </View>
           </View>
         )}
-      </ScrollView>
+      </View>
+
+      <ModalConfirmacao
+        visivel={modalVisivel}
+        onConfirmar={confirmarSaida}
+        onCancelar={() => setModalVisivel(false)}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FAF8F0",
+  container: { flex: 1, backgroundColor: "#FAF8F0" },
+  header: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    height: 110,
+    position: "absolute",
+    top: 0,
+    zIndex: 10,
   },
-  scrollContent: {
-    flexGrow: 1,
+  backIconButton: {
+    width: 55,
+    height: 55,
+    backgroundColor: "#FFF",
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: "#AEE1F9",
+  },
+  scoreContainer: {
+    flexDirection: "row",
+    backgroundColor: "#FFF",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#AEE1F9",
+    gap: 15,
+  },
+  scoreItem: { fontSize: 18, fontWeight: "bold", color: "#333" },
+  gameContainer: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 40,
-  },
-  centerBox: {
     width: "100%",
-    alignItems: "center",
-    paddingHorizontal: 10,
   },
-  levelText: {
-    fontSize: 34,
-    fontWeight: "bold",
-    marginBottom: 6,
-  },
-  simpleMessage: {
-    fontSize: 24,
-    marginBottom: 10,
-    textAlign: "center",
-  },
+  centerBox: { width: "100%", alignItems: "center", paddingHorizontal: 10 },
+  levelText: { fontSize: 34, fontWeight: "bold", marginBottom: 6 },
+  simpleMessage: { fontSize: 24, marginBottom: 10, textAlign: "center" },
   timerText: {
     fontSize: 30,
     fontWeight: "bold",
     marginBottom: 12,
-    color: "#333",
-  },
-  errorText: {
-    fontSize: 22,
-    marginBottom: 10,
     color: "#333",
   },
   button: {
@@ -302,13 +336,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 20,
     paddingHorizontal: 40,
-    borderRadius: 14,
+    borderRadius: 18,
+    minWidth: 250,
+    alignItems: "center",
+    borderBottomColor: "#7EC8E3",
   },
-  buttonText: {
-    color: "#333",
-    fontSize: 22,
-    fontWeight: "bold",
-  },
+  buttonText: { color: "#333", fontSize: 24, fontWeight: "bold" },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -318,22 +351,24 @@ const styles = StyleSheet.create({
   },
   cardOpen: {
     margin: 5,
-    backgroundColor: "#AEE1F9",
+    backgroundColor: "#FFF",
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: "#7EC8E3",
+    borderColor: "#AEE1F9",
   },
   cardClosed: {
     margin: 5,
-    backgroundColor: "#BDBDBD",
+    backgroundColor: "#AEE1F9",
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+    elevation: 2,
+    borderWidth: 2,
+    borderColor: "#7EC8E3",
   },
-  question: {
-    fontWeight: "bold",
-    color: "#FFF",
-  },
+  question: { fontWeight: "bold", color: "#05526e" },
+  title: { fontSize: 40, fontWeight: "bold", color: "#333", marginBottom: 5 },
+  subtitle: { fontSize: 24, color: "#666", marginBottom: 20 },
 });

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import ModalConfirmacao from "../components/ModalConfirmacao";
 
 const COLORS = [
   { id: "vermelho", color: "#FEB2B2" },
@@ -26,6 +27,7 @@ export default function JogoCores() {
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [phase, setPhase] = useState<"intro" | "memorize" | "play">("intro");
+  const [modalVisivel, setModalVisivel] = useState(false);
 
   const getGamePhaseName = () => `Fase ${phaseIndex + 1}`;
 
@@ -34,19 +36,22 @@ export default function JogoCores() {
     setPhase("memorize");
   }
 
+  const handleReset = () => {
+    setPhaseIndex(0);
+    setPhase("intro");
+    setLives(3);
+  };
+
   const generateSequence = () => {
     const length = PHASES[phaseIndex];
     const seq: string[] = [];
-
     for (let i = 0; i < length; i++) {
       const randomColor = COLORS[Math.floor(Math.random() * COLORS.length)];
       seq.push(randomColor.id);
     }
-
     setSequence(seq);
     setUserAnswer([]);
     setShowSequence(true);
-
     setTimeLeft(length * 2 + 2);
   };
 
@@ -63,7 +68,6 @@ export default function JogoCores() {
           return t - 1;
         });
       }, 1000);
-
       return () => clearInterval(timer);
     }
   }, [phase]);
@@ -76,13 +80,11 @@ export default function JogoCores() {
 
   const handleSelect = (id: string) => {
     if (showSequence || lives <= 0 || phase !== "play") return;
-
     const updatedUserAnswer = [...userAnswer, id];
     setUserAnswer(updatedUserAnswer);
 
     if (updatedUserAnswer.length === sequence.length) {
       const isCorrect = updatedUserAnswer.every((v, i) => v === sequence[i]);
-
       if (isCorrect) {
         if (phaseIndex === TOTAL_PHASES - 1) {
           router.push({
@@ -96,7 +98,6 @@ export default function JogoCores() {
           });
           return;
         }
-
         setTimeout(() => {
           setPhaseIndex((prev) => prev + 1);
           setPhase("intro");
@@ -104,7 +105,6 @@ export default function JogoCores() {
       } else {
         const newLives = lives - 1;
         setLives(newLives);
-
         if (newLives <= 0) {
           router.push({
             pathname: "/resultado",
@@ -125,130 +125,183 @@ export default function JogoCores() {
     }
   };
 
+  const abrirModalSair = () => setModalVisivel(true);
+  const confirmarSaida = () => {
+    setModalVisivel(false);
+    router.back();
+  };
+
   const screenWidth = Dimensions.get("window").width;
   const boxSize = sequence.length <= 4 ? screenWidth * 0.24 : screenWidth * 0.2;
 
   return (
     <View style={styles.container}>
-      {phase === "intro" && (
-        <View style={styles.center}>
-          <Text style={styles.phaseText}>{getGamePhaseName()}</Text>
-          <Text style={styles.subtitle}>Vamos jogar?</Text>
-          <TouchableOpacity style={styles.button} onPress={startGame}>
-            <Text style={styles.buttonText}>Começar</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* HEADER PADRONIZADO */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backIconButton}
+          onPress={abrirModalSair}
+        >
+          <Text style={{ fontSize: 24 }}>⬅️</Text>
+        </TouchableOpacity>
 
-      {phase === "memorize" && (
-        <View style={styles.center}>
-          <Text style={styles.title}>Observe com calma 👀</Text>
-          <Text style={styles.timer}>{timeLeft}s</Text>
-
-          <View style={styles.sequenceRow}>
-            {sequence.map((id, index) => {
-              const color = COLORS.find((c) => c.id === id)?.color;
-              return (
-                <View
-                  key={index}
-                  style={[
-                    styles.box,
-                    { backgroundColor: color, width: boxSize, height: boxSize },
-                  ]}
-                />
-              );
-            })}
+        {/* PLACAR SÓ APARECE NA HORA DE JOGAR (PLAY) */}
+        {phase === "play" && (
+          <View style={styles.scoreContainer}>
+            <Text style={styles.scoreItem}>
+              ⭐ {phaseIndex + 1}/{TOTAL_PHASES}
+            </Text>
+            <Text style={styles.scoreItem}>❤️ {lives}</Text>
           </View>
-        </View>
-      )}
+        )}
+      </View>
 
-      {phase === "play" && (
-        <View style={styles.center}>
-          <Text style={styles.title}>Agora é sua vez! ⭐</Text>
-
-          <View style={styles.answerRow}>
-            {sequence.map((_, i) => {
-              const colorId = userAnswer[i];
-              const color = COLORS.find((c) => c.id === colorId)?.color;
-              const borderColor = colorId
-                ? colorId === sequence[i]
-                  ? "#4CAF50"
-                  : "#FF3D3D"
-                : "#ccc";
-
-              return (
-                <View
-                  key={i}
-                  style={[
-                    styles.box,
-                    {
-                      backgroundColor: color || "#EDEDED",
-                      borderColor,
-                      width: boxSize,
-                      height: boxSize,
-                    },
-                  ]}
-                />
-              );
-            })}
+      <View style={styles.gameContainer}>
+        {phase === "intro" && (
+          <View style={styles.centerBox}>
+            <Text style={styles.title}>{getGamePhaseName()}</Text>
+            <Text style={styles.subtitle}>Vamos jogar?</Text>
+            <TouchableOpacity style={styles.button} onPress={startGame}>
+              <Text style={styles.buttonText}>Começar</Text>
+            </TouchableOpacity>
           </View>
+        )}
 
-          <View style={styles.buttonsRow}>
-            {COLORS.map((c) => (
-              <TouchableOpacity
-                key={c.id}
-                style={[styles.colorButton, { backgroundColor: c.color }]}
-                onPress={() => handleSelect(c.id)}
-                disabled={userAnswer.length >= sequence.length}
-              >
-                <Text style={styles.buttonLabel}>{c.id.toUpperCase()}</Text>
-              </TouchableOpacity>
-            ))}
+        {phase === "memorize" && (
+          <View style={styles.centerBox}>
+            <Text style={styles.instruction}>Observe com calma 👀</Text>
+            <Text style={styles.timerText}>{timeLeft}s</Text>
+            <View style={styles.sequenceRow}>
+              {sequence.map((id, index) => {
+                const color = COLORS.find((c) => c.id === id)?.color;
+                return (
+                  <View
+                    key={index}
+                    style={[
+                      styles.box,
+                      {
+                        backgroundColor: color,
+                        width: boxSize,
+                        height: boxSize,
+                      },
+                    ]}
+                  />
+                );
+              })}
+            </View>
           </View>
+        )}
 
-          <Text style={styles.lives}>
-            Vidas: {Array(lives).fill("❤️").join(" ")}
-          </Text>
-        </View>
-      )}
+        {phase === "play" && (
+          <View style={styles.centerBox}>
+            <Text style={styles.instruction}>Repita as cores!</Text>
+            <View style={styles.answerRow}>
+              {sequence.map((_, i) => {
+                const colorId = userAnswer[i];
+                const color = COLORS.find((c) => c.id === colorId)?.color;
+                const borderColor = colorId
+                  ? colorId === sequence[i]
+                    ? "#4CAF50"
+                    : "#FF3D3D"
+                  : "#ccc";
+                return (
+                  <View
+                    key={i}
+                    style={[
+                      styles.box,
+                      {
+                        backgroundColor: color || "#EDEDED",
+                        borderColor,
+                        width: boxSize,
+                        height: boxSize,
+                      },
+                    ]}
+                  />
+                );
+              })}
+            </View>
+
+            <View style={styles.buttonsRow}>
+              {COLORS.map((c) => (
+                <TouchableOpacity
+                  key={c.id}
+                  style={[styles.colorButton, { backgroundColor: c.color }]}
+                  onPress={() => handleSelect(c.id)}
+                  disabled={userAnswer.length >= sequence.length}
+                >
+                  <Text style={styles.buttonLabel}>{c.id.toUpperCase()}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
+
+      <ModalConfirmacao
+        visivel={modalVisivel}
+        onConfirmar={confirmarSaida}
+        onCancelar={() => setModalVisivel(false)}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1, backgroundColor: "#FAF8F0" },
+  header: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    height: 110,
+    position: "absolute",
+    top: 0,
+    zIndex: 10,
+  },
+  backIconButton: {
+    width: 55,
+    height: 55,
+    backgroundColor: "#FFF",
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: "#AEE1F9",
+  },
+  scoreContainer: {
+    flexDirection: "row",
+    backgroundColor: "#FFF",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#AEE1F9",
+    gap: 15,
+  },
+  scoreItem: { fontSize: 18, fontWeight: "bold", color: "#333" },
+  gameContainer: {
     flex: 1,
-    backgroundColor: "#FAF8F0",
     alignItems: "center",
     justifyContent: "center",
+    width: "100%",
   },
-  center: {
-    width: "95%",
-    alignItems: "center",
-  },
-  phaseText: {
-    fontSize: 34,
+  centerBox: { width: "100%", alignItems: "center", paddingHorizontal: 10 },
+  title: { fontSize: 40, fontWeight: "bold", color: "#333", marginBottom: 5 },
+  subtitle: { fontSize: 24, color: "#666", marginBottom: 20 },
+  instruction: {
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 6,
+    marginBottom: 15,
+    color: "#333",
   },
-  title: {
-    fontSize: 26,
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 22,
-    marginBottom: 14,
-  },
-  timer: {
+  timerText: {
     fontSize: 30,
     fontWeight: "bold",
     marginBottom: 18,
-  },
-  lives: {
-    fontSize: 22,
-    marginTop: 30,
-    color: "#FF4C4C",
-    fontWeight: "bold",
+    color: "#333",
   },
   sequenceRow: {
     flexDirection: "row",
@@ -261,13 +314,9 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     gap: 14,
-    marginVertical: 20,
+    marginBottom: 30,
   },
-  box: {
-    borderRadius: 22,
-    borderWidth: 2,
-    borderColor: "#a0c3d07d",
-  },
+  box: { borderRadius: 22, borderWidth: 3, borderColor: "#a0c3d07d" },
   buttonsRow: {
     flexDirection: "row",
     gap: 16,
@@ -276,8 +325,8 @@ const styles = StyleSheet.create({
   },
   colorButton: {
     width: 155,
-    height: 80,
-    borderRadius: 10,
+    height: 85,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
@@ -286,10 +335,13 @@ const styles = StyleSheet.create({
   buttonLabel: { fontWeight: "bold", fontSize: 18, color: "#333" },
   button: {
     backgroundColor: "#AEE1F9",
-    marginTop: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 30,
-    borderRadius: 14,
+    paddingVertical: 20,
+    paddingHorizontal: 50,
+    borderRadius: 18,
+    minWidth: 250,
+    alignItems: "center",
+
+    borderBottomColor: "#7EC8E3",
   },
-  buttonText: { fontSize: 22, fontWeight: "bold" },
+  buttonText: { color: "#333", fontSize: 24, fontWeight: "bold" },
 });

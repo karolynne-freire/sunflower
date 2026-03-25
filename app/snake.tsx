@@ -1,9 +1,9 @@
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import ModalConfirmacao from "../components/ModalConfirmacao";
 
 const GRID_SIZE = 10;
-
 const LEVELS = [
   { speed: 520, apples: 0 },
   { speed: 460, apples: 3 },
@@ -28,12 +28,13 @@ export default function SnakeGame() {
   const [lives, setLives] = useState(3);
   const [apples, setApples] = useState(0);
 
+  const [modalVisivel, setModalVisivel] = useState(false);
+
   const directionRef = useRef<Direction>("RIGHT");
   const snakeRef = useRef(snake);
   const foodRef = useRef(food);
   const applesRef = useRef(0);
   const levelRef = useRef(0);
-
   const gameLoop = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -45,6 +46,24 @@ export default function SnakeGame() {
   useEffect(() => {
     levelRef.current = level;
   }, [level]);
+
+  const abrirModalSair = () => {
+    stopLoop();
+    setModalVisivel(true);
+  };
+
+  const confirmarSaida = () => {
+    setModalVisivel(false);
+    stopLoop();
+    router.back();
+  };
+
+  const cancelarSaida = () => {
+    setModalVisivel(false);
+    if (step === "game") {
+      startLoop(LEVELS[levelRef.current].speed);
+    }
+  };
 
   function startGame() {
     setSnake([{ x: 5, y: 5 }]);
@@ -123,18 +142,15 @@ export default function SnakeGame() {
         setStep("levelUp");
         return;
       }
-
       setFood(randomFood(newSnake));
     } else {
       newSnake.pop();
     }
-
     setSnake(newSnake);
   }
 
   function loseLife() {
     stopLoop();
-
     setLives((l) => {
       if (l - 1 <= 0) {
         router.push({
@@ -149,7 +165,6 @@ export default function SnakeGame() {
       }
       return l - 1;
     });
-
     setSnake([{ x: 5, y: 5 }]);
     setFood(randomFood([{ x: 5, y: 5 }]));
     directionRef.current = "RIGHT";
@@ -165,41 +180,36 @@ export default function SnakeGame() {
 
   return (
     <View style={styles.container}>
-      {step === "intro" && (
+      {/* HEADER PADRONIZADO */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backIconButton}
+          onPress={abrirModalSair}
+        >
+          <Text style={{ fontSize: 24 }}>⬅️</Text>
+        </TouchableOpacity>
+
+        {step === "game" && (
+          <View style={styles.scoreContainer}>
+            <Text style={styles.scoreItem}>🍎 {apples}</Text>
+            <Text style={styles.scoreItem}>❤️ {lives}</Text>
+          </View>
+        )}
+      </View>
+
+      {(step === "intro" || step === "levelUp") && (
         <View style={styles.center}>
           <Text style={styles.title}>Fase {level + 1}</Text>
-          <Text style={styles.text}>Vamos jogar?</Text>
-
+          <Text style={styles.subtitle}>Vamos jogar?</Text>
           <TouchableOpacity style={styles.button} onPress={startGame}>
             <Text style={styles.buttonText}>Começar</Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {step === "levelUp" && (
-        <View style={styles.center}>
-          <Text style={styles.title}>Fase {level + 1} </Text>
-          <Text style={styles.simpleMessage}>Vamos jogar?</Text>
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => {
-              setStep("game");
-              startLoop(LEVELS[levelRef.current].speed);
-            }}
-          >
-            <Text style={styles.buttonText}>Começar</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
       {step === "game" && (
-        <>
-          <Text style={styles.simpleMessage}>Coma as maçãs 🍎</Text>
-
-          <Text style={styles.info}>
-            🍎 {apples} | ❤️ {lives} | Fase {level + 1}
-          </Text>
+        <View style={styles.gameArea}>
+          <Text style={styles.instruction}>Coma as maçãs!</Text>
 
           <View style={styles.board}>
             {Array.from({ length: GRID_SIZE }).map((_, y) => (
@@ -222,26 +232,29 @@ export default function SnakeGame() {
             ))}
           </View>
 
-          <View style={styles.controls}>
+          <View style={styles.controlsContainer}>
             <TouchableOpacity
               onPress={() => changeDirection("UP")}
               style={styles.btn}
             >
-              <Text style={styles.arrow}>⬆️</Text>
+              <Text style={styles.arrow}>▲</Text>
             </TouchableOpacity>
 
-            <View style={{ flexDirection: "row", gap: 20 }}>
+            <View style={styles.rowControls}>
               <TouchableOpacity
                 onPress={() => changeDirection("LEFT")}
                 style={styles.btn}
               >
-                <Text style={styles.arrow}>⬅️</Text>
+                <Text style={styles.arrow}>◀</Text>
               </TouchableOpacity>
+
+              <View style={styles.centerDot} />
+
               <TouchableOpacity
                 onPress={() => changeDirection("RIGHT")}
                 style={styles.btn}
               >
-                <Text style={styles.arrow}>➡️</Text>
+                <Text style={styles.arrow}>▶</Text>
               </TouchableOpacity>
             </View>
 
@@ -249,41 +262,62 @@ export default function SnakeGame() {
               onPress={() => changeDirection("DOWN")}
               style={styles.btn}
             >
-              <Text style={styles.arrow}>⬇️</Text>
+              <Text style={styles.arrow}>▼</Text>
             </TouchableOpacity>
           </View>
-        </>
+        </View>
       )}
+
+      <ModalConfirmacao
+        visivel={modalVisivel}
+        onConfirmar={confirmarSaida}
+        onCancelar={cancelarSaida}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1, backgroundColor: "#FAF8F0" },
+  header: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    height: 120,
+  },
+  backIconButton: {
+    width: 55,
+    height: 55,
+    backgroundColor: "#FFF",
+    borderRadius: 10,
     justifyContent: "center",
-    backgroundColor: "#FAF8F0",
-  },
-  center: {
     alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#AEE1F9",
   },
-  title: {
-    fontSize: 34,
+  scoreContainer: {
+    flexDirection: "row",
+    backgroundColor: "#FFF",
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#AEE1F9",
+    gap: 15,
+  },
+  scoreItem: { fontSize: 18, fontWeight: "bold", color: "#333" },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  gameArea: { flex: 1, alignItems: "center", justifyContent: "center" },
+  title: { fontSize: 40, fontWeight: "bold", color: "#333", marginBottom: 5 },
+  subtitle: { fontSize: 24, color: "#666", marginBottom: 20 },
+  instruction: {
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 6,
-  },
-  text: {
-    fontSize: 26,
-  },
-  simpleMessage: {
-    fontSize: 26,
-    marginBottom: 10,
-  },
-  info: {
-    fontSize: 18,
-    marginBottom: 10,
-    fontWeight: "bold",
+    marginBottom: 15,
+    color: "#555",
   },
   board: {
     width: 300,
@@ -293,6 +327,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 2,
     borderColor: "#7EC8E3",
+    elevation: 8,
   },
   cell: {
     width: 30,
@@ -300,41 +335,44 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: "#B0E0E6",
   },
-  snake: {
-    backgroundColor: "#22c55e",
-  },
-  food: {
-    backgroundColor: "#ef4444",
-  },
-  controls: {
-    marginTop: 20,
-    alignItems: "center",
-    gap: 10,
-  },
+  snake: { backgroundColor: "#22c55e", borderRadius: 4 },
+  food: { backgroundColor: "#ef4444", borderRadius: 15 },
 
+  controlsContainer: { marginTop: 30, alignItems: "center" },
+  rowControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: -5,
+  },
+  centerDot: {
+    width: 40,
+    height: 40,
+    backgroundColor: "#7EC8E3",
+    borderRadius: 20,
+    marginHorizontal: 10,
+    opacity: 0.2,
+  },
   btn: {
     backgroundColor: "#AEE1F9",
-    width: 80,
-    height: 80,
-    borderRadius: 5,
+    width: 85,
+    height: 85,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#7EC8E3",
+    borderBottomWidth: 3,
+    elevation: 5,
   },
-  arrow: {
-    fontSize: 32,
-  },
+  arrow: { fontSize: 60, color: "#05526e" },
   button: {
     backgroundColor: "#AEE1F9",
-    marginTop: 20,
-    paddingVertical: 28,
-    paddingHorizontal: 30,
-    borderRadius: 14,
+    paddingVertical: 20,
+    paddingHorizontal: 50,
+    borderRadius: 18,
+    minWidth: 250,
+    alignItems: "center",
+    elevation: 4,
   },
-  buttonText: {
-    color: "#333",
-    fontSize: 22,
-    fontWeight: "bold",
-  },
+  buttonText: { color: "#333", fontSize: 24, fontWeight: "bold" },
 });

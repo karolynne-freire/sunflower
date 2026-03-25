@@ -247,10 +247,22 @@ export default function Puzzler() {
 
   return (
     <View style={styles.container}>
-      {/* Botão Seta de Voltar sempre visível */}
-      <TouchableOpacity style={styles.backIconButton} onPress={abrirModalSair}>
-        <Text style={{ fontSize: 30 }}>⬅️</Text>
-      </TouchableOpacity>
+      {/* HEADER COM SETA E PLACAR DE VIDAS */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backIconButton}
+          onPress={abrirModalSair}
+        >
+          <Text style={{ fontSize: 30 }}>⬅️</Text>
+        </TouchableOpacity>
+
+        {phase === "play" && (
+          <View style={styles.scoreContainer}>
+            <Text style={styles.scoreItem}>⭐ {level + 1}/3</Text>
+            <Text style={styles.scoreItem}>❤️ {lives}</Text>
+          </View>
+        )}
+      </View>
 
       {phase === "selection" && (
         <View style={styles.center}>
@@ -291,10 +303,7 @@ export default function Puzzler() {
               </View>
             ) : (
               <View style={styles.center}>
-                <Text style={styles.instructionTitle}>Sua vez!</Text>
-                <Text style={styles.livesSmall}>
-                  Vidas: {"❤️".repeat(lives)}
-                </Text>
+                <Text style={styles.instructionTitle}>Monte o desenho!</Text>
               </View>
             )}
           </View>
@@ -356,20 +365,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  backIconButton: {
+  header: {
     position: "absolute",
     top: 50,
-    left: 20,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    alignItems: "center",
+    zIndex: 10,
+  },
+  backIconButton: {
     width: 60,
     height: 60,
     backgroundColor: "#FFF",
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 10,
     borderWidth: 2,
     borderColor: "#AEE1F9",
   },
+  scoreContainer: {
+    flexDirection: "row",
+    backgroundColor: "#FFF",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: "#AEE1F9",
+    gap: 10,
+  },
+  scoreItem: { fontSize: 18, fontWeight: "bold", color: "#333" },
   center: { alignItems: "center" },
   title: { fontSize: 32, fontWeight: "bold", color: "#333" },
   subtitle: { fontSize: 26, marginBottom: 10 },
@@ -381,7 +407,6 @@ const styles = StyleSheet.create({
   },
   infoText: { fontSize: 20, fontWeight: "600", color: "#666", marginTop: 5 },
   instructionTitle: { fontSize: 28, fontWeight: "bold", color: "#333" },
-  livesSmall: { fontSize: 18, marginTop: 8 },
   board: {
     flexDirection: "row",
     justifyContent: "center",

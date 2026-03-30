@@ -24,7 +24,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/img/sunny-apresent.png"
     },
     "plugins": [
       "expo-router",
